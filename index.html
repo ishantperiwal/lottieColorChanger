@@ -41,6 +41,18 @@
       background-color: #eee;
       font-weight: bold;
     }
+    .accordion-header-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .accordion-header input[type="text"] {
+      width: 80px;
+      padding: 4px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
     .accordion-body {
       display: none;
       padding: 1rem;
@@ -168,27 +180,74 @@
 
         const header = document.createElement("div");
         header.className = "accordion-header";
-        header.innerHTML = `<span>${hex} (${refs.length})</span>`;
+        
+        const headerContent = document.createElement("div");
+        headerContent.style.display = 'flex';
+        headerContent.style.justifyContent = 'space-between';
+        headerContent.style.width = '100%';
+        headerContent.style.alignItems = 'center';
+
+        const title = document.createElement("span");
+        title.textContent = `Color Group (${refs.length})`;
+
+        const controls = document.createElement("div");
+        controls.className = "accordion-header-controls";
 
         const groupColorInput = document.createElement("input");
         groupColorInput.type = "color";
         groupColorInput.value = hex;
-        groupColorInput.addEventListener("input", (e) => {
-          const newHex = e.target.value;
-          refs.forEach(({ ref }) => updateColor(ref, newHex));
-          const inputs = accordion.querySelectorAll(".color-row input[type=color]");
-          inputs.forEach(input => input.value = newHex);
-          const textInputs = accordion.querySelectorAll(".color-row input[type=text]");
-          textInputs.forEach(input => input.value = newHex);
-        });
 
-        header.appendChild(groupColorInput);
-        header.addEventListener("click", () => {
+        const groupHexInput = document.createElement("input");
+        groupHexInput.type = "text";
+        groupHexInput.value = hex;
+        groupHexInput.style.width = "80px";
+
+        controls.appendChild(groupColorInput);
+        controls.appendChild(groupHexInput);
+        headerContent.appendChild(title);
+        headerContent.appendChild(controls);
+        header.appendChild(headerContent);
+
+        header.addEventListener("click", (e) => {
+          // Check if click was on an input element
+          if (e.target.closest('input[type="color"], input[type="text"]')) {
+            return;
+          }
+          const body = header.nextElementSibling;
           body.style.display = body.style.display === "block" ? "none" : "block";
         });
 
         const body = document.createElement("div");
         body.className = "accordion-body";
+
+        // Update handler for header inputs
+        const handleHeaderInput = (newHex) => {
+          groupColorInput.value = newHex;
+          groupHexInput.value = newHex;
+          refs.forEach(({ ref }) => updateColor(ref, newHex));
+          
+          // Update all child inputs
+          const rows = body.querySelectorAll('.color-row');
+          rows.forEach(row => {
+            row.querySelector('input[type="color"]').value = newHex;
+            row.querySelector('input[type="text"]').value = newHex;
+          });
+        };
+
+        groupColorInput.addEventListener("input", (e) => {
+          handleHeaderInput(e.target.value);
+        });
+
+        groupHexInput.addEventListener("change", (e) => {
+          let newHex = e.target.value;
+          if (!newHex.startsWith("#")) newHex = "#" + newHex;
+          if (/^#[0-9A-F]{6}$/i.test(newHex)) {
+            handleHeaderInput(newHex);
+          } else {
+            alert("Invalid hex code. Use format like #FF0000.");
+            groupHexInput.value = hex;
+          }
+        });
 
         refs.forEach(({ ref, index }) => {
           const [r, g, b] = getValueByPath(lottieData, ref.path);
@@ -212,6 +271,11 @@
             const newHex = e.target.value;
             hexInput.value = newHex;
             updateColor(ref, newHex);
+            // Update header if all colors match
+            if (body.querySelectorAll('input[type="color"]').every(input => input.value === newHex)) {
+              groupColorInput.value = newHex;
+              groupHexInput.value = newHex;
+            }
           });
 
           hexInput.addEventListener("change", (e) => {
@@ -220,6 +284,11 @@
             if (/^#[0-9A-F]{6}$/i.test(newHex)) {
               colorInput.value = newHex;
               updateColor(ref, newHex);
+              // Update header if all colors match
+              if (body.querySelectorAll('input[type="text"]').every(input => input.value === newHex)) {
+                groupColorInput.value = newHex;
+                groupHexInput.value = newHex;
+              }
             } else {
               alert("Invalid hex code. Use format like #FF0000.");
               hexInput.value = colorInput.value;
