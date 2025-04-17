@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Lottie Color Editor with Preview & Hex Input</title>
+  <title>Lottie Color Editor with Grouped Accordions</title>
   <style>
     body {
       font-family: sans-serif;
@@ -12,11 +12,39 @@
       flex-direction: row;
       gap: 2rem;
     }
-    #editorArea, #previewArea {
+    #editorArea {
       flex: 1;
+      overflow-y: auto;
+      max-height: 90vh;
+    }
+    #previewArea {
+      flex: 1.2;
+      position: sticky;
+      top: 2rem;
+      height: fit-content;
     }
     input[type="file"] {
       margin-bottom: 1rem;
+    }
+    .accordion {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-bottom: 1rem;
+    }
+    .accordion-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      background-color: #eee;
+      font-weight: bold;
+    }
+    .accordion-body {
+      display: none;
+      padding: 1rem;
+      border-top: 1px solid #ccc;
     }
     .color-row {
       display: flex;
@@ -43,7 +71,7 @@
     }
     #lottiePreview {
       width: 100%;
-      max-width: 400px;
+      max-width: 100%;
       height: 400px;
       background: white;
       border: 1px solid #ccc;
@@ -53,30 +81,24 @@
   </style>
 </head>
 <body>
-
   <div id="editorArea">
     <h2>Edit Lottie Colors</h2>
     <input type="file" id="fileInput" accept=".json" />
     <div id="colorEditor"></div>
     <button id="downloadBtn" style="display:none;">Download Updated JSON</button>
   </div>
-
   <div id="previewArea">
     <h2>Live Preview</h2>
     <div id="lottiePreview"></div>
   </div>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
-
   <script>
     let lottieData;
     let colorRefs = [];
     let animationInstance;
 
     function rgbToHex(r, g, b) {
-      return "#" + [r, g, b].map(x =>
-        Math.round(x * 255).toString(16).padStart(2, "0")
-      ).join("");
+      return "#" + [r, g, b].map(x => Math.round(x * 255).toString(16).padStart(2, "0")).join("");
     }
 
     function hexToRgb(hex) {
@@ -104,7 +126,6 @@
             original: obj.c.k
           });
         }
-
         for (let key in obj) {
           findColors(obj[key], [...path, key]);
         }
@@ -132,49 +153,88 @@
     function renderColorPickers() {
       const editor = document.getElementById('colorEditor');
       editor.innerHTML = "";
+      const groupedColors = {};
 
       colorRefs.forEach((ref, i) => {
         const [r, g, b] = getValueByPath(lottieData, ref.path);
         const hex = rgbToHex(r, g, b);
+        if (!groupedColors[hex]) groupedColors[hex] = [];
+        groupedColors[hex].push({ ref, index: i });
+      });
 
-        const row = document.createElement("div");
-        row.className = "color-row";
+      Object.entries(groupedColors).forEach(([hex, refs]) => {
+        const accordion = document.createElement("div");
+        accordion.className = "accordion";
 
-        const label = document.createElement("label");
-        label.textContent = `Color ${i + 1}`;
+        const header = document.createElement("div");
+        header.className = "accordion-header";
+        header.innerHTML = `<span>${hex} (${refs.length})</span>`;
 
-        const colorInput = document.createElement("input");
-        colorInput.type = "color";
-        colorInput.value = hex;
-
-        const hexInput = document.createElement("input");
-        hexInput.type = "text";
-        hexInput.value = hex;
-
-        // Sync from color picker
-        colorInput.addEventListener("input", (e) => {
+        const groupColorInput = document.createElement("input");
+        groupColorInput.type = "color";
+        groupColorInput.value = hex;
+        groupColorInput.addEventListener("input", (e) => {
           const newHex = e.target.value;
-          hexInput.value = newHex;
-          updateColor(ref, newHex);
+          refs.forEach(({ ref }) => updateColor(ref, newHex));
+          const inputs = accordion.querySelectorAll(".color-row input[type=color]");
+          inputs.forEach(input => input.value = newHex);
+          const textInputs = accordion.querySelectorAll(".color-row input[type=text]");
+          textInputs.forEach(input => input.value = newHex);
         });
 
-        // Sync from hex input
-        hexInput.addEventListener("change", (e) => {
-          let newHex = e.target.value;
-          if (!newHex.startsWith("#")) newHex = "#" + newHex;
-          if (/^#[0-9A-F]{6}$/i.test(newHex)) {
-            colorInput.value = newHex;
+        header.appendChild(groupColorInput);
+        header.addEventListener("click", () => {
+          body.style.display = body.style.display === "block" ? "none" : "block";
+        });
+
+        const body = document.createElement("div");
+        body.className = "accordion-body";
+
+        refs.forEach(({ ref, index }) => {
+          const [r, g, b] = getValueByPath(lottieData, ref.path);
+          const colorHex = rgbToHex(r, g, b);
+
+          const row = document.createElement("div");
+          row.className = "color-row";
+
+          const label = document.createElement("label");
+          label.textContent = `Color ${index + 1}`;
+
+          const colorInput = document.createElement("input");
+          colorInput.type = "color";
+          colorInput.value = colorHex;
+
+          const hexInput = document.createElement("input");
+          hexInput.type = "text";
+          hexInput.value = colorHex;
+
+          colorInput.addEventListener("input", (e) => {
+            const newHex = e.target.value;
+            hexInput.value = newHex;
             updateColor(ref, newHex);
-          } else {
-            alert("Invalid hex code. Use format like #FF0000.");
-            hexInput.value = colorInput.value;
-          }
+          });
+
+          hexInput.addEventListener("change", (e) => {
+            let newHex = e.target.value;
+            if (!newHex.startsWith("#")) newHex = "#" + newHex;
+            if (/^#[0-9A-F]{6}$/i.test(newHex)) {
+              colorInput.value = newHex;
+              updateColor(ref, newHex);
+            } else {
+              alert("Invalid hex code. Use format like #FF0000.");
+              hexInput.value = colorInput.value;
+            }
+          });
+
+          row.appendChild(label);
+          row.appendChild(colorInput);
+          row.appendChild(hexInput);
+          body.appendChild(row);
         });
 
-        row.appendChild(label);
-        row.appendChild(colorInput);
-        row.appendChild(hexInput);
-        editor.appendChild(row);
+        accordion.appendChild(header);
+        accordion.appendChild(body);
+        editor.appendChild(accordion);
       });
 
       if (colorRefs.length > 0) {
@@ -183,10 +243,7 @@
     }
 
     function reloadLottiePreview() {
-      if (animationInstance) {
-        animationInstance.destroy();
-      }
-
+      if (animationInstance) animationInstance.destroy();
       animationInstance = lottie.loadAnimation({
         container: document.getElementById('lottiePreview'),
         renderer: 'svg',
@@ -199,7 +256,6 @@
     document.getElementById("fileInput").addEventListener("change", (e) => {
       const file = e.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
@@ -226,6 +282,5 @@
       document.body.removeChild(a);
     });
   </script>
-
 </body>
 </html>
