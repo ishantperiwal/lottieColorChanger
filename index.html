@@ -447,7 +447,7 @@
       return modifiedData;
     }
 
- function generateGif() {
+function generateGif() {
   const loadingDiv = document.getElementById('loading');
   loadingDiv.style.display = 'flex';
 
@@ -458,11 +458,17 @@
   const gifWidth = Math.round(400 * scaleValue);
   const gifHeight = Math.round(gifWidth / aspectRatio);
 
-  const effectiveFrameRate = originalFrameRate * currentSpeed;
-  const frameDelay = Math.round(100 / effectiveFrameRate); // centiseconds
+  const GIF_FPS = 24;
+  const FRAME_DELAY_CS = Math.round(100 / GIF_FPS); // in centiseconds
 
-  const totalDuration = (lottieData.op - lottieData.ip) / originalFrameRate; // in seconds
-  const totalFrames = Math.min(50, Math.floor(totalDuration * effectiveFrameRate));
+  // Total animation duration in seconds
+  const animationDuration = (lottieData.op - lottieData.ip) / originalFrameRate;
+
+  // Adjusted duration after applying speed (e.g., 2x = half duration)
+  const adjustedDuration = animationDuration / currentSpeed;
+
+  let totalFrames = Math.floor(adjustedDuration * GIF_FPS);
+  totalFrames = Math.min(totalFrames, 500);
 
   const gif = new GIF({
     workers: 2,
@@ -496,9 +502,11 @@
       return;
     }
 
-    // Frame time in seconds
-    const time = (frameIndex / effectiveFrameRate);
-    const frame = lottieData.ip + (time * originalFrameRate);
+    // Time (in seconds) since start of adjusted animation
+    const timeInAdjusted = frameIndex / GIF_FPS;
+    // Convert to original animation time
+    const originalTime = timeInAdjusted * currentSpeed;
+    const frame = lottieData.ip + originalTime * originalFrameRate;
 
     animationInstance.goToAndStop(frame, true);
 
@@ -513,7 +521,6 @@
       canvas.height = gifHeight;
       const ctx = canvas.getContext('2d');
 
-      // transparent background
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const svgData = new XMLSerializer().serializeToString(clonedSvg);
@@ -525,7 +532,7 @@
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         URL.revokeObjectURL(url);
 
-        gif.addFrame(canvas, { delay: frameDelay, copy: true });
+        gif.addFrame(canvas, { delay: FRAME_DELAY_CS, copy: true });
         captureFrame(frameIndex + 1);
       };
       img.src = url;
@@ -534,6 +541,7 @@
 
   captureFrame(0);
 }
+
 
 
 
