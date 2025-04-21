@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Lottie Color Editor with Grouped Accordions</title>
+  <title>Lottie Color Editor with Speed Control and GIF Export</title>
   <style>
     body {
       font-family: sans-serif;
@@ -80,6 +80,21 @@
     button {
       margin-top: 1rem;
       padding: 0.5rem 1rem;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 0.5rem;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .button-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
     }
     #lottiePreview {
       width: 100%;
@@ -90,6 +105,41 @@
       border-radius: 8px;
       padding: 1rem;
     }
+    .speed-control {
+      margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .speed-control label {
+      font-weight: bold;
+    }
+    .speed-control input[type="range"] {
+      flex: 1;
+    }
+    .speed-value {
+      min-width: 50px;
+      text-align: center;
+    }
+    .loading {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+    .loading-spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -97,17 +147,32 @@
     <h2>Edit Lottie Colors</h2>
     <input type="file" id="fileInput" accept=".json" />
     <div id="colorEditor"></div>
-    <button id="downloadBtn" style="display:none;">Download Updated JSON</button>
+    <div class="speed-control">
+      <label for="speedSlider">Animation Speed:</label>
+      <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1">
+      <span id="speedValue" class="speed-value">1.0x</span>
+    </div>
+    <div class="button-group">
+      <button id="downloadJsonBtn" style="display:none;">Download JSON</button>
+      <button id="downloadGifBtn" style="display:none;">Download GIF</button>
+    </div>
+    <div id="loading" class="loading">
+      <div class="loading-spinner"></div>
+      <span>Generating GIF...</span>
+    </div>
   </div>
   <div id="previewArea">
     <h2>Live Preview</h2>
     <div id="lottiePreview"></div>
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
   <script>
     let lottieData;
     let colorRefs = [];
     let animationInstance;
+    let currentSpeed = 1.0;
+    let originalFrameRate;
 
     function rgbToHex(r, g, b) {
       return "#" + [r, g, b].map(x => Math.round(x * 255).toString(16).padStart(2, "0")).join("");
@@ -307,19 +372,128 @@
       });
 
       if (colorRefs.length > 0) {
-        document.getElementById("downloadBtn").style.display = "inline-block";
+        document.getElementById("downloadJsonBtn").style.display = "inline-block";
+        document.getElementById("downloadGifBtn").style.display = "inline-block";
       }
     }
 
     function reloadLottiePreview() {
       if (animationInstance) animationInstance.destroy();
+      
+      // Create a deep copy of the lottie data for preview
+      const previewData = JSON.parse(JSON.stringify(lottieData));
+      
+      // Apply speed adjustment if needed
+      if (currentSpeed !== 1.0) {
+        previewData.fr = originalFrameRate * currentSpeed;
+      }
+      
       animationInstance = lottie.loadAnimation({
         container: document.getElementById('lottiePreview'),
         renderer: 'svg',
         loop: true,
         autoplay: true,
-        animationData: lottieData
+        animationData: previewData
       });
+    }
+
+    function createModifiedJson() {
+      // Create a deep copy of the original data
+      const modifiedData = JSON.parse(JSON.stringify(lottieData));
+      
+      // Apply the speed change to the frame rate
+      if (currentSpeed !== 1.0) {
+        modifiedData.fr = originalFrameRate * currentSpeed;
+      }
+      
+      return modifiedData;
+    }
+
+    function generateGif() {
+      const loadingDiv = document.getElementById('loading');
+      loadingDiv.style.display = 'flex';
+      
+      // Create a gif instance
+      const gif = new GIF({
+        workers: 2,
+        quality: 10,
+        width: 400,
+        height: 400,
+        workerScript: 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'
+      });
+      
+      // First stop the current animation
+      animationInstance.pause();
+      
+      // Calculate frames to capture based on the animation
+      const totalFrames = Math.min(50, Math.round(lottieData.op - lottieData.ip)); // Limit to 50 frames max for performance
+      const frameStep = (lottieData.op - lottieData.ip) / totalFrames;
+      const previewContainer = document.getElementById('lottiePreview');
+      const svgElement = previewContainer.querySelector('svg');
+      
+      // Function to capture frames recursively
+      function captureFrame(frameIndex) {
+        if (frameIndex >= totalFrames) {
+          // All frames captured, render the GIF
+          gif.on('finished', function(blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'animation.gif';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            // Resume animation and hide loading
+            animationInstance.play();
+            loadingDiv.style.display = 'none';
+          });
+          
+          gif.render();
+          return;
+        }
+        
+        // Set to specific frame
+        const frame = lottieData.ip + (frameIndex * frameStep);
+        animationInstance.goToAndStop(frame, true);
+        
+        // Wait for the frame to render
+        setTimeout(() => {
+          // Clone the SVG to avoid changing the original
+          const clonedSvg = svgElement.cloneNode(true);
+          
+          // Create a canvas to draw the SVG
+          const canvas = document.createElement('canvas');
+          canvas.width = 400;
+          canvas.height = 400;
+          const ctx = canvas.getContext('2d');
+          
+          // Convert SVG to data URL
+          const svgData = new XMLSerializer().serializeToString(clonedSvg);
+          const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+          const url = URL.createObjectURL(svgBlob);
+          
+          // Load the SVG onto an image
+          const img = new Image();
+          img.onload = function() {
+            // Draw the image on the canvas
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            URL.revokeObjectURL(url);
+            
+            // Add the canvas to the GIF
+            gif.addFrame(canvas, {delay: 1000 / (lottieData.fr * currentSpeed), copy: true});
+            
+            // Process next frame
+            captureFrame(frameIndex + 1);
+          };
+          img.src = url;
+        }, 100); // Small delay to ensure frame is fully rendered
+      }
+      
+      // Start capturing frames
+      captureFrame(0);
     }
 
     document.getElementById("fileInput").addEventListener("change", (e) => {
@@ -329,6 +503,7 @@
       reader.onload = (e) => {
         try {
           lottieData = JSON.parse(e.target.result);
+          originalFrameRate = lottieData.fr; // Store original frame rate
           colorRefs = [];
           findColors(lottieData);
           renderColorPickers();
@@ -340,8 +515,9 @@
       reader.readAsText(file);
     });
 
-    document.getElementById("downloadBtn").addEventListener("click", () => {
-      const blob = new Blob([JSON.stringify(lottieData, null, 2)], { type: "application/json" });
+    document.getElementById("downloadJsonBtn").addEventListener("click", () => {
+      const modifiedData = createModifiedJson();
+      const blob = new Blob([JSON.stringify(modifiedData, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -349,6 +525,29 @@
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+    });
+    
+    document.getElementById("downloadGifBtn").addEventListener("click", () => {
+      generateGif();
+    });
+    
+    // Speed control event handlers
+    const speedSlider = document.getElementById("speedSlider");
+    const speedValue = document.getElementById("speedValue");
+    
+    speedSlider.addEventListener("input", (e) => {
+      currentSpeed = parseFloat(e.target.value);
+      speedValue.textContent = currentSpeed.toFixed(1) + "x";
+      
+      // Update the animation speed in real-time
+      if (animationInstance) {
+        animationInstance.setSpeed(currentSpeed);
+      }
+    });
+    
+    speedSlider.addEventListener("change", (e) => {
+      // When slider is released, reload the preview with the new speed
+      reloadLottiePreview();
     });
   </script>
 </body>
