@@ -149,9 +149,9 @@
     }
     /* Show checkerboard background pattern for transparency */
     .checkerboard {
-      background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%), 
-                       linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), 
-                       linear-gradient(45deg, transparent 75%, #f0f0f0 75%), 
+      background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
+                       linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
+                       linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
                        linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
       background-size: 20px 20px;
       background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
@@ -279,7 +279,7 @@
 
         const header = document.createElement("div");
         header.className = "accordion-header";
-        
+
         const headerContent = document.createElement("div");
         headerContent.style.display = 'flex';
         headerContent.style.justifyContent = 'space-between';
@@ -324,7 +324,7 @@
           groupColorInput.value = newHex;
           groupHexInput.value = newHex;
           refs.forEach(({ ref }) => updateColor(ref, newHex));
-          
+
           // Update all child inputs
           const rows = body.querySelectorAll('.color-row');
           rows.forEach(row => {
@@ -413,19 +413,19 @@
 
     function reloadLottiePreview() {
       if (animationInstance) animationInstance.destroy();
-      
+
       // Create a deep copy of the lottie data for preview
       const previewData = JSON.parse(JSON.stringify(lottieData));
-      
+
       // Apply speed adjustment if needed
       if (currentSpeed !== 1.0) {
         previewData.fr = originalFrameRate * currentSpeed;
       }
-      
+
       // Store animation dimensions from the data
       animWidth = previewData.w;
       animHeight = previewData.h;
-      
+
       animationInstance = lottie.loadAnimation({
         container: document.getElementById('lottiePreview'),
         renderer: 'svg',
@@ -438,12 +438,12 @@
     function createModifiedJson() {
       // Create a deep copy of the original data
       const modifiedData = JSON.parse(JSON.stringify(lottieData));
-      
+
       // Apply the speed change to the frame rate
       if (currentSpeed !== 1.0) {
         modifiedData.fr = originalFrameRate * currentSpeed;
       }
-      
+
       return modifiedData;
     }
 
@@ -459,7 +459,7 @@ function generateGif() {
   const gifHeight = Math.round(gifWidth / aspectRatio);
 
   const GIF_FPS = 30;
-  const PLAYBACK_MULTIPLIER = 2;
+  const PLAYBACK_MULTIPLIER = 0.127;
   const FRAME_DELAY_CS = Math.round((100 / GIF_FPS) * (1 / PLAYBACK_MULTIPLIER)); // centiseconds
 
   const animationDuration = (lottieData.op - lottieData.ip) / originalFrameRate;
@@ -550,11 +550,11 @@ function generateGif() {
         try {
           lottieData = JSON.parse(e.target.result);
           originalFrameRate = lottieData.fr; // Store original frame rate
-          
+
           // Store animation dimensions
           animWidth = lottieData.w;
           animHeight = lottieData.h;
-          
+
           colorRefs = [];
           findColors(lottieData);
           renderColorPickers();
@@ -578,25 +578,25 @@ function generateGif() {
       a.click();
       document.body.removeChild(a);
     });
-    
+
     document.getElementById("downloadGifBtn").addEventListener("click", () => {
       generateGif();
     });
-    
+
     // Speed control event handlers
     const speedSlider = document.getElementById("speedSlider");
     const speedValue = document.getElementById("speedValue");
-    
+
     speedSlider.addEventListener("input", (e) => {
       currentSpeed = parseFloat(e.target.value);
       speedValue.textContent = currentSpeed.toFixed(1) + "x";
-      
+
       // Update the animation speed in real-time
       if (animationInstance) {
         animationInstance.setSpeed(currentSpeed);
       }
     });
-    
+
     speedSlider.addEventListener("change", (e) => {
       // When slider is released, reload the preview with the new speed
       reloadLottiePreview();
