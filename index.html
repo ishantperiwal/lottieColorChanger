@@ -451,39 +451,33 @@
       const loadingDiv = document.getElementById('loading');
       loadingDiv.style.display = 'flex';
       
-      // Get scale from selection
       const scaleValue = parseFloat(document.getElementById('gifScale').value);
       const useTransparent = document.getElementById('transparentBg').checked;
       
-      // Calculate dimensions based on animation aspect ratio
       const aspectRatio = animWidth / animHeight;
       let gifWidth = Math.round(400 * scaleValue);
       let gifHeight = Math.round(gifWidth / aspectRatio);
       
-      // Create a gif instance
+      // Configure transparent color (magenta) for GIF
+      const TRANSPARENT_COLOR = 0xFF00FF; // Magenta color key
       const gif = new GIF({
         workers: 2,
         quality: 10,
         width: gifWidth,
         height: gifHeight,
-        workerScript: './gif.worker.js', // Local worker script
-        transparent: useTransparent ? 0x00FFFFFF : null, // Enable transparency if checked
-        background: useTransparent ? null : '#FFFFFF' // White background if not transparent
+        workerScript: './gif.worker.js',
+        transparent: useTransparent ? TRANSPARENT_COLOR : null,
+        background: '#FFFFFF'
       });
-      
-      // First stop the current animation
+
       animationInstance.pause();
-      
-      // Calculate frames to capture based on the animation
-      const totalFrames = Math.min(50, Math.round(lottieData.op - lottieData.ip)); // Limit to 50 frames max for performance
+      const totalFrames = Math.min(50, Math.round(lottieData.op - lottieData.ip));
       const frameStep = (lottieData.op - lottieData.ip) / totalFrames;
       const previewContainer = document.getElementById('lottiePreview');
       const svgElement = previewContainer.querySelector('svg');
-      
-      // Function to capture frames recursively
+
       function captureFrame(frameIndex) {
         if (frameIndex >= totalFrames) {
-          // All frames captured, render the GIF
           gif.on('finished', function(blob) {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -492,66 +486,59 @@
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            
-            // Resume animation and hide loading
             animationInstance.play();
             loadingDiv.style.display = 'none';
           });
-          
           gif.render();
           return;
         }
-        
-        // Set to specific frame
+
         const frame = lottieData.ip + (frameIndex * frameStep);
         animationInstance.goToAndStop(frame, true);
-        
-        // Wait for the frame to render
+
         setTimeout(() => {
-          // Clone the SVG to avoid changing the original
           const clonedSvg = svgElement.cloneNode(true);
-          
-          // Make sure viewBox is set correctly to maintain aspect ratio
           clonedSvg.setAttribute('viewBox', `0 0 ${animWidth} ${animHeight}`);
           clonedSvg.setAttribute('width', gifWidth);
           clonedSvg.setAttribute('height', gifHeight);
-          
-          // Create a canvas to draw the SVG
+
           const canvas = document.createElement('canvas');
           canvas.width = gifWidth;
           canvas.height = gifHeight;
           const ctx = canvas.getContext('2d', { willReadFrequently: true });
-          
-          // Draw background only if not transparent
-          if (!useTransparent) {
+
+          // Prepare background
+          if (useTransparent) {
+            // Fill with magenta to use as transparent key
+            ctx.fillStyle = '#FF00FF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+          } else {
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
           }
-          
-          // Convert SVG to data URL
+
           const svgData = new XMLSerializer().serializeToString(clonedSvg);
           const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
           const url = URL.createObjectURL(svgBlob);
-          
-          // Load the SVG onto an image
+
           const img = new Image();
           img.onload = function() {
-            // Draw the image on the canvas
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             URL.revokeObjectURL(url);
             
-            // Add the canvas to the GIF
-            gif.addFrame(canvas, {delay: 1000 / (lottieData.fr * currentSpeed), copy: true});
+            // Calculate correct frame delay based on speed
+            const effectiveFrameRate = originalFrameRate * currentSpeed;
+            const frameDelay = 1000 / effectiveFrameRate;
             
-            // Process next frame
+            gif.addFrame(canvas, {delay: frameDelay, copy: true});
             captureFrame(frameIndex + 1);
           };
           img.src = url;
-        }, 100); // Small delay to ensure frame is fully rendered
+        }, 100);
       }
-      
-      // Start capturing frames
+
       captureFrame(0);
+    
     }
 
     document.getElementById("fileInput").addEventListener("change", (e) => {
