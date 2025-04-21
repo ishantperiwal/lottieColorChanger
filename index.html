@@ -458,13 +458,11 @@ function generateGif() {
   const gifWidth = Math.round(400 * scaleValue);
   const gifHeight = Math.round(gifWidth / aspectRatio);
 
-  const GIF_FPS = 24;
-  const FRAME_DELAY_CS = Math.round(100 / GIF_FPS); // in centiseconds
+  const GIF_FPS = 30;
+  const PLAYBACK_MULTIPLIER = 1.2;
+  const FRAME_DELAY_CS = Math.round((100 / GIF_FPS) * (1 / PLAYBACK_MULTIPLIER)); // centiseconds
 
-  // Total animation duration in seconds
   const animationDuration = (lottieData.op - lottieData.ip) / originalFrameRate;
-
-  // Adjusted duration after applying speed (e.g., 2x = half duration)
   const adjustedDuration = animationDuration / currentSpeed;
 
   let totalFrames = Math.floor(adjustedDuration * GIF_FPS);
@@ -502,9 +500,7 @@ function generateGif() {
       return;
     }
 
-    // Time (in seconds) since start of adjusted animation
     const timeInAdjusted = frameIndex / GIF_FPS;
-    // Convert to original animation time
     const originalTime = timeInAdjusted * currentSpeed;
     const frame = lottieData.ip + originalTime * originalFrameRate;
 
@@ -541,6 +537,7 @@ function generateGif() {
 
   captureFrame(0);
 }
+
 
 
 
