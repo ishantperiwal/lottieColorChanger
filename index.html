@@ -455,8 +455,14 @@
   const useTransparent = document.getElementById('transparentBg').checked;
 
   const aspectRatio = animWidth / animHeight;
-  let gifWidth = Math.round(400 * scaleValue);
-  let gifHeight = Math.round(gifWidth / aspectRatio);
+  const gifWidth = Math.round(400 * scaleValue);
+  const gifHeight = Math.round(gifWidth / aspectRatio);
+
+  const effectiveFrameRate = originalFrameRate * currentSpeed;
+  const frameDelay = Math.round(100 / effectiveFrameRate); // centiseconds
+
+  const totalDuration = (lottieData.op - lottieData.ip) / originalFrameRate; // in seconds
+  const totalFrames = Math.min(50, Math.floor(totalDuration * effectiveFrameRate));
 
   const gif = new GIF({
     workers: 2,
@@ -464,13 +470,12 @@
     width: gifWidth,
     height: gifHeight,
     workerScript: './gif.worker.js',
-    transparent: useTransparent ? 'rgba(0,0,0,0)' : null, // use real transparency
+    transparent: useTransparent ? 'rgba(0,0,0,0)' : null,
     background: useTransparent ? 'rgba(0,0,0,0)' : '#FFFFFF'
   });
 
   animationInstance.pause();
-  const totalFrames = Math.min(50, Math.round(lottieData.op - lottieData.ip));
-  const frameStep = (lottieData.op - lottieData.ip) / totalFrames;
+
   const previewContainer = document.getElementById('lottiePreview');
   const svgElement = previewContainer.querySelector('svg');
 
@@ -491,7 +496,10 @@
       return;
     }
 
-    const frame = lottieData.ip + (frameIndex * frameStep);
+    // Frame time in seconds
+    const time = (frameIndex / effectiveFrameRate);
+    const frame = lottieData.ip + (time * originalFrameRate);
+
     animationInstance.goToAndStop(frame, true);
 
     setTimeout(() => {
@@ -505,18 +513,17 @@
       canvas.height = gifHeight;
       const ctx = canvas.getContext('2d');
 
+      // transparent background
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
       const svgData = new XMLSerializer().serializeToString(clonedSvg);
       const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(svgBlob);
 
       const img = new Image();
       img.onload = function () {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         URL.revokeObjectURL(url);
-
-        const effectiveFrameRate = originalFrameRate * currentSpeed;
-        const frameDelay = Math.round(100 / effectiveFrameRate);
 
         gif.addFrame(canvas, { delay: frameDelay, copy: true });
         captureFrame(frameIndex + 1);
@@ -527,6 +534,7 @@
 
   captureFrame(0);
 }
+
 
 
     document.getElementById("fileInput").addEventListener("change", (e) => {
