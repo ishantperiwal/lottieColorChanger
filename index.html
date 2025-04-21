@@ -100,19 +100,21 @@
       width: 100%;
       max-width: 100%;
       height: 400px;
-      background: white;
+      background: transparent;
       border: 1px solid #ccc;
       border-radius: 8px;
       padding: 1rem;
+      overflow: hidden;
     }
-    .speed-control {
+    .speed-control, .gif-settings {
       margin-top: 1rem;
       display: flex;
       align-items: center;
       gap: 1rem;
     }
-    .speed-control label {
+    .speed-control label, .gif-settings label {
       font-weight: bold;
+      min-width: 80px;
     }
     .speed-control input[type="range"] {
       flex: 1;
@@ -136,9 +138,23 @@
       animation: spin 1s linear infinite;
       margin-right: 10px;
     }
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
+    }
+    /* Show checkerboard background pattern for transparency */
+    .checkerboard {
+      background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%), 
+                       linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), 
+                       linear-gradient(45deg, transparent 75%, #f0f0f0 75%), 
+                       linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
     }
   </style>
 </head>
@@ -152,6 +168,23 @@
       <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1">
       <span id="speedValue" class="speed-value">1.0x</span>
     </div>
+    <div class="gif-settings">
+      <label for="gifScale">GIF Scale:</label>
+      <select id="gifScale">
+        <option value="0.25">0.25x</option>
+        <option value="0.5">0.5x</option>
+        <option value="1" selected>1x</option>
+        <option value="1.5">1.5x</option>
+        <option value="2">2x</option>
+      </select>
+    </div>
+    <div class="gif-settings">
+      <label>Background:</label>
+      <div class="checkbox-container">
+        <input type="checkbox" id="transparentBg" checked>
+        <label for="transparentBg">Transparent</label>
+      </div>
+    </div>
     <div class="button-group">
       <button id="downloadJsonBtn" style="display:none;">Download JSON</button>
       <button id="downloadGifBtn" style="display:none;">Download GIF</button>
@@ -163,7 +196,7 @@
   </div>
   <div id="previewArea">
     <h2>Live Preview</h2>
-    <div id="lottiePreview"></div>
+    <div id="lottiePreview" class="checkerboard"></div>
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
@@ -173,6 +206,7 @@
     let animationInstance;
     let currentSpeed = 1.0;
     let originalFrameRate;
+    let animWidth, animHeight; // Store animation dimensions
 
     function rgbToHex(r, g, b) {
       return "#" + [r, g, b].map(x => Math.round(x * 255).toString(16).padStart(2, "0")).join("");
@@ -388,6 +422,10 @@
         previewData.fr = originalFrameRate * currentSpeed;
       }
       
+      // Store animation dimensions from the data
+      animWidth = previewData.w;
+      animHeight = previewData.h;
+      
       animationInstance = lottie.loadAnimation({
         container: document.getElementById('lottiePreview'),
         renderer: 'svg',
@@ -413,13 +451,24 @@
       const loadingDiv = document.getElementById('loading');
       loadingDiv.style.display = 'flex';
       
+      // Get scale from selection
+      const scaleValue = parseFloat(document.getElementById('gifScale').value);
+      const useTransparent = document.getElementById('transparentBg').checked;
+      
+      // Calculate dimensions based on animation aspect ratio
+      const aspectRatio = animWidth / animHeight;
+      let gifWidth = Math.round(400 * scaleValue);
+      let gifHeight = Math.round(gifWidth / aspectRatio);
+      
       // Create a gif instance
       const gif = new GIF({
         workers: 2,
         quality: 10,
-        width: 400,
-        height: 400,
-        workerScript: './gif.worker.js'
+        width: gifWidth,
+        height: gifHeight,
+        workerScript: './gif.worker.js', // Local worker script
+        transparent: useTransparent ? 0x00FFFFFF : null, // Enable transparency if checked
+        background: useTransparent ? null : '#FFFFFF' // White background if not transparent
       });
       
       // First stop the current animation
@@ -462,11 +511,22 @@
           // Clone the SVG to avoid changing the original
           const clonedSvg = svgElement.cloneNode(true);
           
+          // Make sure viewBox is set correctly to maintain aspect ratio
+          clonedSvg.setAttribute('viewBox', `0 0 ${animWidth} ${animHeight}`);
+          clonedSvg.setAttribute('width', gifWidth);
+          clonedSvg.setAttribute('height', gifHeight);
+          
           // Create a canvas to draw the SVG
           const canvas = document.createElement('canvas');
-          canvas.width = 400;
-          canvas.height = 400;
-          const ctx = canvas.getContext('2d');
+          canvas.width = gifWidth;
+          canvas.height = gifHeight;
+          const ctx = canvas.getContext('2d', { willReadFrequently: true });
+          
+          // Draw background only if not transparent
+          if (!useTransparent) {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+          }
           
           // Convert SVG to data URL
           const svgData = new XMLSerializer().serializeToString(clonedSvg);
@@ -477,8 +537,6 @@
           const img = new Image();
           img.onload = function() {
             // Draw the image on the canvas
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             URL.revokeObjectURL(url);
             
@@ -504,12 +562,18 @@
         try {
           lottieData = JSON.parse(e.target.result);
           originalFrameRate = lottieData.fr; // Store original frame rate
+          
+          // Store animation dimensions
+          animWidth = lottieData.w;
+          animHeight = lottieData.h;
+          
           colorRefs = [];
           findColors(lottieData);
           renderColorPickers();
           reloadLottiePreview();
         } catch (err) {
           alert("Invalid Lottie JSON");
+          console.error(err);
         }
       };
       reader.readAsText(file);
