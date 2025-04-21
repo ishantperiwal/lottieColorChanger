@@ -516,7 +516,7 @@
         URL.revokeObjectURL(url);
 
         const effectiveFrameRate = originalFrameRate * currentSpeed;
-        const frameDelay = 1000 / effectiveFrameRate;
+        const frameDelay = Math.round(100 / effectiveFrameRate);
 
         gif.addFrame(canvas, { delay: frameDelay, copy: true });
         captureFrame(frameIndex + 1);
