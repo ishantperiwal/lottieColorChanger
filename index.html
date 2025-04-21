@@ -447,99 +447,87 @@
       return modifiedData;
     }
 
-    function generateGif() {
-      const loadingDiv = document.getElementById('loading');
-      loadingDiv.style.display = 'flex';
-      
-      const scaleValue = parseFloat(document.getElementById('gifScale').value);
-      const useTransparent = document.getElementById('transparentBg').checked;
-      
-      const aspectRatio = animWidth / animHeight;
-      let gifWidth = Math.round(400 * scaleValue);
-      let gifHeight = Math.round(gifWidth / aspectRatio);
-      
-      // Configure transparent color (magenta) for GIF
-      const TRANSPARENT_COLOR = 0xFF00FF; // Magenta color key
-      const gif = new GIF({
-        workers: 2,
-        quality: 10,
-        width: gifWidth,
-        height: gifHeight,
-        workerScript: './gif.worker.js',
-        transparent: useTransparent ? TRANSPARENT_COLOR : null,
-        background: '#FFFFFF'
+ function generateGif() {
+  const loadingDiv = document.getElementById('loading');
+  loadingDiv.style.display = 'flex';
+
+  const scaleValue = parseFloat(document.getElementById('gifScale').value);
+  const useTransparent = document.getElementById('transparentBg').checked;
+
+  const aspectRatio = animWidth / animHeight;
+  let gifWidth = Math.round(400 * scaleValue);
+  let gifHeight = Math.round(gifWidth / aspectRatio);
+
+  const gif = new GIF({
+    workers: 2,
+    quality: 10,
+    width: gifWidth,
+    height: gifHeight,
+    workerScript: './gif.worker.js',
+    transparent: useTransparent ? 'rgba(0,0,0,0)' : null, // use real transparency
+    background: useTransparent ? 'rgba(0,0,0,0)' : '#FFFFFF'
+  });
+
+  animationInstance.pause();
+  const totalFrames = Math.min(50, Math.round(lottieData.op - lottieData.ip));
+  const frameStep = (lottieData.op - lottieData.ip) / totalFrames;
+  const previewContainer = document.getElementById('lottiePreview');
+  const svgElement = previewContainer.querySelector('svg');
+
+  function captureFrame(frameIndex) {
+    if (frameIndex >= totalFrames) {
+      gif.on('finished', function (blob) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'animation.gif';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        animationInstance.play();
+        loadingDiv.style.display = 'none';
       });
-
-      animationInstance.pause();
-      const totalFrames = Math.min(50, Math.round(lottieData.op - lottieData.ip));
-      const frameStep = (lottieData.op - lottieData.ip) / totalFrames;
-      const previewContainer = document.getElementById('lottiePreview');
-      const svgElement = previewContainer.querySelector('svg');
-
-      function captureFrame(frameIndex) {
-        if (frameIndex >= totalFrames) {
-          gif.on('finished', function(blob) {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'animation.gif';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            animationInstance.play();
-            loadingDiv.style.display = 'none';
-          });
-          gif.render();
-          return;
-        }
-
-        const frame = lottieData.ip + (frameIndex * frameStep);
-        animationInstance.goToAndStop(frame, true);
-
-        setTimeout(() => {
-          const clonedSvg = svgElement.cloneNode(true);
-          clonedSvg.setAttribute('viewBox', `0 0 ${animWidth} ${animHeight}`);
-          clonedSvg.setAttribute('width', gifWidth);
-          clonedSvg.setAttribute('height', gifHeight);
-
-          const canvas = document.createElement('canvas');
-          canvas.width = gifWidth;
-          canvas.height = gifHeight;
-          const ctx = canvas.getContext('2d', { willReadFrequently: true });
-
-          // Prepare background
-          if (useTransparent) {
-            // Fill with magenta to use as transparent key
-            ctx.fillStyle = '#FF00FF';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-          } else {
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-          }
-
-          const svgData = new XMLSerializer().serializeToString(clonedSvg);
-          const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
-          const url = URL.createObjectURL(svgBlob);
-
-          const img = new Image();
-          img.onload = function() {
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            URL.revokeObjectURL(url);
-            
-            // Calculate correct frame delay based on speed
-            const effectiveFrameRate = originalFrameRate * currentSpeed;
-            const frameDelay = 1000 / effectiveFrameRate;
-            
-            gif.addFrame(canvas, {delay: frameDelay, copy: true});
-            captureFrame(frameIndex + 1);
-          };
-          img.src = url;
-        }, 100);
-      }
-
-      captureFrame(0);
-    
+      gif.render();
+      return;
     }
+
+    const frame = lottieData.ip + (frameIndex * frameStep);
+    animationInstance.goToAndStop(frame, true);
+
+    setTimeout(() => {
+      const clonedSvg = svgElement.cloneNode(true);
+      clonedSvg.setAttribute('viewBox', `0 0 ${animWidth} ${animHeight}`);
+      clonedSvg.setAttribute('width', gifWidth);
+      clonedSvg.setAttribute('height', gifHeight);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = gifWidth;
+      canvas.height = gifHeight;
+      const ctx = canvas.getContext('2d');
+
+      const svgData = new XMLSerializer().serializeToString(clonedSvg);
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+
+      const img = new Image();
+      img.onload = function () {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+
+        const effectiveFrameRate = originalFrameRate * currentSpeed;
+        const frameDelay = 1000 / effectiveFrameRate;
+
+        gif.addFrame(canvas, { delay: frameDelay, copy: true });
+        captureFrame(frameIndex + 1);
+      };
+      img.src = url;
+    }, 100);
+  }
+
+  captureFrame(0);
+}
+
 
     document.getElementById("fileInput").addEventListener("change", (e) => {
       const file = e.target.files[0];
