@@ -459,7 +459,7 @@ function generateGif() {
   const gifHeight = Math.round(gifWidth / aspectRatio);
 
   const GIF_FPS = 30;
-  const PLAYBACK_MULTIPLIER = 1.2;
+  const PLAYBACK_MULTIPLIER = 2;
   const FRAME_DELAY_CS = Math.round((100 / GIF_FPS) * (1 / PLAYBACK_MULTIPLIER)); // centiseconds
 
   const animationDuration = (lottieData.op - lottieData.ip) / originalFrameRate;
