@@ -4,158 +4,234 @@
   <meta charset="UTF-8" />
   <title>Lottie Color Editor with Speed Control and GIF Export</title>
   <style>
+    /* General Reset and Body Styles */
+  body {
+    font-family: sans-serif;
+    padding: 2rem;
+    background: #f5f5f5;
+    display: flex;
+    flex-direction: row;
+    gap: 2rem;
+  }
+
+  /* Layout Areas */
+  #editorArea, #previewArea {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #editorArea {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 90vh;
+  }
+
+  #previewArea {
+    flex: 1.2;
+    position: sticky;
+    top: 2rem;
+    height: fit-content;
+  }
+
+  /* Input Fields */
+  input[type="file"],
+  input[type="color"],
+  input[type="text"],
+  select {
+    padding: 4px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+  }
+
+  input[type="file"] {
+    margin-bottom: 1rem;
+  }
+
+  input[type="text"],
+  input[type="color"] {
+    width: 80px;
+  }
+
+  /* Button Styles */
+  .btn {
+    padding: 0.5rem 1rem;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .btn:hover {
+    background-color: #45a049;
+  }
+
+  .btn--download-json {
+    background-color: #2196F3;
+  }
+
+  .btn--download-gif {
+    background-color: #FFC107;
+  }
+
+  /* Accordion Styles */
+      span{
+          font-size: 16px;
+          letter-spacing: 0px;
+      }
+
+  .accordion, .gradient-accordion {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+  }
+
+  .accordion-header, .gradient-header {
+    padding: 0.75rem 1rem;
+    background-color: #eee;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+      .stop-row{
+          display: flex;
+          justify-content: space-between;
+          margin-top: 12px;
+          margin-bottom: 12px;
+          margin-left: 12px;
+          margin-right: 12px;
+      }
+      
+      .color-row{
+           display: flex;
+          justify-content: space-between;
+      }
+      
+      .gradient-preview{
+         height: 20px;
+          width: 100px;
+         border-radius:  4px;
+          
+      }  
+      
+  .accordion-body {
+    padding: 1rem;
+    border-top: 1px solid #ccc;
+    display: none;
+  }
+
+  .accordion-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  /* Color Picker Rows */
+  .color-picker-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .color-picker-row label {
+    flex: 1;
+    font-size: 14px;
+  }
+
+  .color-picker {
+    width: 80px;
+    padding: 4px;
+    font-size: 14px;
+  }
+
+  .color-picker-row input[type="text"] {
+    width: 90px;
+  }
+
+  /* Speed Control and Settings */
+  .speed-control,
+  .gif-settings {
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .speed-control label,
+  .gif-settings label {
+    font-weight: bold;
+    min-width: 80px;
+  }
+
+  .speed-control input[type="range"] {
+    flex: 1;
+  }
+
+  .speed-value {
+    min-width: 50px;
+    text-align: center;
+  }
+
+  /* Loading Spinner */
+  .loading {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+
+  .loading-spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Checkbox Styles */
+  .checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Background Checkerboard */
+  .checkerboard {
+    background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
+                      linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
+                      linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
+                      linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  }
+
+  /* Media Queries */
+  @media (max-width: 768px) {
     body {
-      font-family: sans-serif;
-      padding: 2rem;
-      background: #f5f5f5;
-      display: flex;
-      flex-direction: row;
-      gap: 2rem;
+      flex-direction: column;
     }
-    #editorArea {
-      flex: 1;
-      overflow-y: auto;
-      max-height: 90vh;
-    }
-    #previewArea {
-      flex: 1.2;
-      position: sticky;
-      top: 2rem;
-      height: fit-content;
-    }
-    input[type="file"] {
-      margin-bottom: 1rem;
-    }
-    .accordion {
-      background-color: #fff;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      margin-bottom: 1rem;
-    }
-    .accordion-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.75rem 1rem;
-      cursor: pointer;
-      background-color: #eee;
-      font-weight: bold;
-    }
-    .accordion-header-controls {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .accordion-header input[type="text"] {
-      width: 80px;
-      padding: 4px;
-      font-size: 14px;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-    }
-    .accordion-body {
-      display: none;
-      padding: 1rem;
-      border-top: 1px solid #ccc;
-    }
-    .color-row {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 0.75rem;
-    }
-    .color-row label {
-      flex: 1;
-      font-size: 14px;
-    }
-    .color-row input[type="color"],
-    .color-row input[type="text"] {
-      width: 80px;
-      padding: 4px;
-      font-size: 14px;
-    }
-    .color-row input[type="text"] {
-      width: 90px;
-    }
-    button {
-      margin-top: 1rem;
-      padding: 0.5rem 1rem;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-      margin-right: 0.5rem;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-    .button-group {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 1rem;
-    }
-    #lottiePreview {
+
+    #editorArea, #previewArea {
+      flex: none;
       width: 100%;
-      max-width: 100%;
-      height: 400px;
-      background: transparent;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 1rem;
-      overflow: hidden;
+      margin-bottom: 1rem;
     }
-    .speed-control, .gif-settings {
-      margin-top: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-    .speed-control label, .gif-settings label {
-      font-weight: bold;
-      min-width: 80px;
-    }
-    .speed-control input[type="range"] {
-      flex: 1;
-    }
-    .speed-value {
-      min-width: 50px;
-      text-align: center;
-    }
-    .loading {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      margin-top: 1rem;
-    }
-    .loading-spinner {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #3498db;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      animation: spin 1s linear infinite;
-      margin-right: 10px;
-    }
-    .checkbox-container {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    /* Show checkerboard background pattern for transparency */
-    .checkerboard {
-      background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
-                       linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
-                       linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
-                       linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
-      background-size: 20px 20px;
-      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-    }
+  }
+
   </style>
 </head>
 <body>
@@ -163,6 +239,8 @@
     <h2>Edit Lottie Colors</h2>
     <input type="file" id="fileInput" accept=".json" />
     <div id="colorEditor"></div>
+    <div id="stopEditor"></div>
+
     <div class="speed-control">
       <label for="speedSlider">Animation Speed:</label>
       <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1">
@@ -285,6 +363,7 @@
         headerContent.style.justifyContent = 'space-between';
         headerContent.style.width = '100%';
         headerContent.style.alignItems = 'center';
+        
 
         const title = document.createElement("span");
         title.textContent = `Color Group (${refs.length})`;
@@ -292,7 +371,7 @@
         const controls = document.createElement("div");
         controls.className = "accordion-header-controls";
 
-        const groupColorInput = document.createElement("input");
+        const groupColorInput = document.createElement("input");  
         groupColorInput.type = "color";
         groupColorInput.value = hex;
 
@@ -300,9 +379,10 @@
         groupHexInput.type = "text";
         groupHexInput.value = hex;
         groupHexInput.style.width = "80px";
-
-        controls.appendChild(groupColorInput);
+        
         controls.appendChild(groupHexInput);
+        controls.appendChild(groupColorInput);
+       
         headerContent.appendChild(title);
         headerContent.appendChild(controls);
         header.appendChild(headerContent);
@@ -351,13 +431,20 @@
         refs.forEach(({ ref, index }) => {
           const [r, g, b] = getValueByPath(lottieData, ref.path);
           const colorHex = rgbToHex(r, g, b);
-
+           
           const row = document.createElement("div");
           row.className = "color-row";
 
           const label = document.createElement("label");
           label.textContent = `Color ${index + 1}`;
-
+          
+            
+          const colorRowRight = document.createElement("div");
+            colorRowRight.style.display = 'flex';
+        colorRowRight.style.justifyContent = 'space-between';
+        
+        colorRowRight.style.gap = '0px';
+            
           const colorInput = document.createElement("input");
           colorInput.type = "color";
           colorInput.value = colorHex;
@@ -395,8 +482,11 @@
           });
 
           row.appendChild(label);
-          row.appendChild(colorInput);
-          row.appendChild(hexInput);
+            row.appendChild(colorRowRight);
+            
+           colorRowRight.appendChild(hexInput); 
+          colorRowRight.appendChild(colorInput);
+          
           body.appendChild(row);
         });
 
@@ -538,6 +628,251 @@ function generateGif() {
   captureFrame(0);
 }
 
+function rgbToHexGr(r, g, b) {
+  return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+}
+
+function hexToRGBGr(hex) {
+  const value = hex.replace('#', '');
+  return {
+    r: parseInt(value.substring(0, 2), 16),
+    g: parseInt(value.substring(2, 4), 16),
+    b: parseInt(value.substring(4, 6), 16),
+  };
+}
+
+function renderGradientEditor() {
+const container = document.getElementById('stopEditor');
+container.innerHTML = ''; // Clear previous content
+
+allGradients.forEach((gradientStops, index) => {
+    const accordion = document.createElement('div');
+    accordion.className = 'gradient-accordion';
+
+    const header = document.createElement('div');
+    header.className = 'gradient-header';
+    header.innerHTML = `
+        Gradient ${index + 1}
+        <div class="gradient-preview"></div>
+    `;
+    const gradientPreview = header.querySelector('.gradient-preview');
+    
+    const content = document.createElement('div');
+    content.className = 'gradient-content';
+
+    gradientStops.forEach((stop, i) => {
+        const row = document.createElement('div');
+        row.className = 'stop-row';
+        
+        const stopRowRight = document.createElement('div');
+        stopRowRight.style.display = 'flex';
+        stopRowRight.style.justifyContent = 'space-between';
+         stopRowRight.style.gap = '20px';
+        
+        
+        const dot = document.createElement('div');
+        dot.className = 'color-dot';
+        dot.style.backgroundColor = `rgba(${stop.r}, ${stop.g}, ${stop.b}, ${stop.a || 1})`;
+
+        const label = document.createElement('span');
+        label.className = 'label';
+        label.textContent = `Stop ${i + 1} (${stop.offset}%)`;
+
+        // **Color Picker Input**
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.value = rgbToHexGr(stop.r, stop.g, stop.b);
+
+        // **Hex Code Input**
+        const hexInput = document.createElement('input');
+        hexInput.type = 'text';
+        hexInput.className = 'hex-input';
+        hexInput.maxLength = 7;
+        hexInput.placeholder = "#HEX";
+        hexInput.value = rgbToHexGr(stop.r, stop.g, stop.b);
+
+        // **Sync Changes Between Hex Input and Color Picker**
+        function updateColor(hex) {
+            if (/^#([0-9A-Fa-f]{6})$/.test(hex)) {
+                const { r, g, b } = hexToRGBGr(hex);
+                stop.r = r;
+                stop.g = g;
+                stop.b = b;
+                dot.style.backgroundColor = `rgba(${r}, ${g}, ${b}, ${stop.a || 1})`;
+                colorInput.value = hex;
+                updateGradientPreview(); 
+                updateLottieGradient();
+            }
+        }
+
+        colorInput.addEventListener('input', (e) => {
+            updateColor(e.target.value);
+            hexInput.value = e.target.value;
+        });
+
+        hexInput.addEventListener('input', (e) => {
+            updateColor(e.target.value);
+        });
+
+        // **Alpha Input (Opacity)**
+        const alphaInput = document.createElement('input');
+        alphaInput.type = 'number';
+        alphaInput.min = 0;
+        alphaInput.max = 1;
+        alphaInput.step = 0.01;
+        alphaInput.value = stop.a ?? 1;
+
+        alphaInput.addEventListener('input', (e) => {
+            stop.a = parseFloat(e.target.value);
+            dot.style.backgroundColor = `rgba(${stop.r}, ${stop.g}, ${stop.b}, ${stop.a})`;
+            updateGradientPreview(); 
+            updateLottieGradient();
+        });
+
+        row.appendChild(label);
+        row.appendChild(stopRowRight);
+        stopRowRight.appendChild(dot);
+        stopRowRight.appendChild(alphaInput);
+        stopRowRight.appendChild(hexInput);
+        stopRowRight.appendChild(colorInput);
+        
+        
+        content.appendChild(row);
+    });
+    
+function updateGradientPreview() {
+    const gradientStyle = `linear-gradient(to right, ${gradientStops.map(stop =>
+        `rgba(${stop.r}, ${stop.g}, ${stop.b}, ${stop.a}) ${stop.offset}%`
+    ).join(', ')})`;
+
+    gradientPreview.style.background = gradientStyle;  // Set the background as the generated gradient
+}
+
+        updateGradientPreview(); // Initialize preview on render
+    
+    
+    header.addEventListener('click', () => {
+        const isOpen = content.style.display !== 'none';
+        content.style.display = isOpen ? 'none' : 'block';
+        header.querySelector('.accordion-icon').textContent = isOpen ? '▶' : '▼';
+        header.classList.toggle('active', !isOpen);
+    });
+
+    content.style.display = 'none';
+    accordion.appendChild(header);
+    accordion.appendChild(content);
+    container.appendChild(accordion);
+});
+}
+
+
+
+
+let allGradients = []; // To store all gradients from the Lottie file
+
+// Update extractGradientStops to extract all gradients
+// Extract all gradient paths from the Lottie JSON
+function extractGradientStops(json) {
+    const gradients = [];
+    try {
+        // Recursive function to find all gradient fills in the JSON
+        function findGradients(obj) {
+            if (typeof obj !== 'object' || obj === null) return;
+
+            if (obj.ty === 'gf' && obj.g?.k?.k && obj.g.p) {
+                const raw = obj.g.k.k;
+                const stops = obj.g.p;
+                const hasOpacity = raw.length === stops * 6;
+                const gradient = [];
+
+                for (let i = 0; i < stops; i++) {
+                    const base = i * 4;
+                    const offset = raw[base];
+                    const r = raw[base + 1] * 255;
+                    const g = raw[base + 2] * 255;
+                    const b = raw[base + 3] * 255;
+                    let a = 1;
+
+                    if (hasOpacity) {
+                        const opaBase = stops * 4 + i * 2;
+                        a = raw[opaBase + 1];
+                    }
+
+                    gradient.push({
+                        offset: Math.round(offset * 100),
+                        r: Math.round(r),
+                        g: Math.round(g),
+                        b: Math.round(b),
+                        a: parseFloat(a.toFixed(2)),
+                        _path: obj // Store reference to the gradient object
+                    });
+                }
+                gradients.push(gradient);
+            }
+
+            // Recursively search through all object properties
+            for (const key in obj) {
+                if (typeof obj[key] === 'object') {
+                    findGradients(obj[key]);
+                }
+            }
+        }
+
+        findGradients(json);
+        return gradients;
+    } catch (error) {
+        console.error('Error extracting gradients:', error);
+        alert('Error processing Lottie structure. Check console for details.');
+        return [];
+    }
+}
+
+function updateLottieGradient() {
+    if (!lottieData || allGradients.length === 0) return;
+
+    try {
+        const updatedLottieData = JSON.parse(JSON.stringify(lottieData));
+
+        allGradients.forEach((gradientStops) => {
+            gradientStops.forEach((stop) => {
+                const gradientObj = stop._path;
+                const raw = gradientObj.g.k.k;
+                const stops = gradientObj.g.p;
+                const i = gradientStops.indexOf(stop);
+                const base = i * 4;
+                const colorLen  = stops * 4;
+                // Update color values
+                raw[base] = stop.offset / 100;
+                raw[base + 1] = stop.r / 255;
+                raw[base + 2] = stop.g / 255;
+                raw[base + 3] = stop.b / 255;
+
+                // Update opacity if available
+
+                gradientStops.forEach((stop, i) => {
+                    const opaBase = colorLen + i * 2;
+                      raw[opaBase]     = stop.offset / 100;
+                        raw[opaBase + 1] = stop.a;
+                        });
+
+
+            });
+        });
+
+        // Clear previous animation
+        const container = document.getElementById('lottiePreview');
+        container.innerHTML = '';
+
+        // Load new animation
+      reloadLottiePreview();
+    } catch (error) {
+        console.error('Error updating animation:', error);
+        document.getElementById('lottiePreview').innerHTML =
+            'Error rendering animation. Check console for details.';
+    }
+}
+
+
 
 
 
@@ -559,6 +894,12 @@ function generateGif() {
           findColors(lottieData);
           renderColorPickers();
           reloadLottiePreview();
+
+          allGradients = extractGradientStops(lottieData);
+          renderGradientEditor();
+          updateLottieGradient();
+
+
         } catch (err) {
           alert("Invalid Lottie JSON");
           console.error(err);
