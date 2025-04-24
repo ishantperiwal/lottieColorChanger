@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lottie Segment Marker Editor</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+    h1 { margin-bottom: 16px; }
+    .container { display: flex; flex-direction: column; gap: 20px; }
+
+    /* Animation preview + main play */
+    #preview-wrapper { position: relative; }
+    #animation-container { width: 100%; height: 400px; background: #f5f5f5; border-radius: 8px; overflow: hidden; }
+    .main-play-btn {
+      position: absolute; bottom: 8px; left: 8px; z-index: 5;
+      padding: 6px 12px; background: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;
+    }
+
+    #globalBar { position: relative; height: 8px; background: #ddd; border-radius: 4px; margin-top: 8px; }
+
+    .controls { display: flex; flex-direction: column; gap: 16px; }
+    .button-group { display: flex; gap: 10px; }
+    button { padding: 8px 16px; background: #4CAF50; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+
+    #segmentsContainer { display: flex; flex-direction: column; gap: 12px; }
+    .segment-control { padding: 12px; border-left: 4px solid; background: #fafafa; border-radius: 4px; display: flex; flex-direction: column; gap: 8px; }
+    .segment-header { display: flex; align-items: center; gap: 8px; }
+    .segment-name { padding: 4px 8px; font-size: 14px; width: 150px; }
+    .frame-input { width: 70px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; }
+    .play-btn, .download-btn { padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; }
+    .download-btn { background: #007bff; color: #fff; }
+
+    .range-container { position: relative; height: 24px; }
+    .range-highlight { position: absolute; top: 10px; height: 4px; border-radius: 2px; border-left: 2px solid; border-right: 2px solid; z-index: 1; }
+    .range-input {
+      -webkit-appearance: none; width: 100%; height: 16px; background: transparent; margin: 0; padding: 0;
+      position: absolute; top: 0; pointer-events: none; z-index: 2;
+    }
+    .range-input::-webkit-slider-runnable-track { background: transparent; }
+    .range-input::-webkit-slider-thumb {
+      -webkit-appearance: none; pointer-events: all; width: 16px; height: 16px;
+      border-radius: 50%; background: #007bff; border: none; cursor: pointer; margin-top: -6px; z-index: 3;
+    }
+    .range-input::-moz-range-track { background: transparent; }
+    .range-input::-moz-range-thumb {
+      pointer-events: all; width: 16px; height: 16px; border-radius: 50%;
+      background: #007bff; border: none; cursor: pointer; margin-top: 0; z-index: 3;
+    }
+
+    #status { font-style: italic; color: #666; }
+    #error { color: #f44336; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Lottie Segment Marker Editor</h1>
+
+
+    <!-- Preview + main play -->
+    <div id="preview-wrapper">
+      <div id="animation-container"></div>
+      <button id="mainPlay" class="main-play-btn" disabled>Play All</button>
+    </div>
+    <div id="globalBar"></div>
+
+    <div class="controls">
+      <button id="addSegment" disabled>Add Segment</button>
+      <div id="segmentsContainer"></div>
+      <div class="button-group">
+        <button id="downloadAll" disabled>Download JSON with Markers</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+  let originalData = null;
+
+  window.addEventListener('message', (e) => {
+    if (e.data.type === 'lottieData') {
+      // Update JSON view
+    originalData = e.data.data;
+    console.log('loaded');
+      // Destroy existing animation
+      try {
+        if (!originalData.v || !originalData.op || !originalData.fr) throw 'Invalid Lottie JSON';
+        initAnim(originalData);
+        console.log('initiated');
+      } catch (err) {
+
+      }
+    }
+  });
+
+
+
+
+    const maxSegments = 10;
+    const segmentColors = ['#e6194b','#3cb44b','#ffe119','#4363d8','#f58231','#911eb4','#46f0f0','#f032e6','#bcf60c','#fabebe'];
+    let  animation, totalFrames;
+    const segments = [];
+    let selectedSegmentId;
+    let mainPlaying = false;
+
+
+
+
+
+
+
+    const mainBtn = document.getElementById('mainPlay');
+    mainBtn.onclick = () => {
+      if (!animation) return;
+      selectedSegmentId = null;
+      document.querySelectorAll('.play-btn').forEach(b => b.textContent = 'Play');
+      if (mainPlaying) {
+        animation.loop = false;
+        animation.pause();
+        mainPlaying = false;
+        mainBtn.textContent = 'Play All';
+      } else {
+        animation.loop = true;
+        animation.goToAndPlay(0, true);
+        mainPlaying = true;
+        mainBtn.textContent = 'Pause All';
+      }
+    };
+
+
+
+
+    function initAnim(data) {
+      segments.length = 0;
+      selectedSegmentId = null;
+      mainPlaying = false;
+      mainBtn.disabled = false;
+      mainBtn.textContent = 'Play All';
+      document.getElementById('segmentsContainer').innerHTML = '';
+      if (animation) animation.destroy();
+      animation = lottie.loadAnimation({
+        container: document.getElementById('animation-container'),
+        animationData: data,
+        renderer: 'svg', loop: false, autoplay: false
+      });
+      animation.addEventListener('DOMLoaded', () => {
+        totalFrames = Math.floor(animation.totalFrames);
+        document.getElementById('addSegment').disabled = false;
+        document.getElementById('downloadAll').disabled = false;
+        if (Array.isArray(data.markers)) loadMarkers(data.markers);
+        drawGlobalBar();
+      });
+    }
+
+    function loadMarkers(markers) {
+      markers.slice(0, maxSegments).forEach((m, i) => {
+        const start = Math.max(0, Math.floor(m.tm));
+        const duration = Math.max(1, Math.floor(m.dr));
+        const end = Math.min(totalFrames, start + duration);
+        segments.push({ id: Date.now() + i, start, end, name: m.cm || `Marker ${i+1}`, color: segmentColors[segments.length] });
+      });
+      renderSegments();
+    }
+
+    document.getElementById('addSegment').onclick = () => {
+      if (segments.length >= maxSegments) return;
+      const id = Date.now();
+      const seg = { id, start: 0, end: totalFrames, name: `Segment ${segments.length+1}`, color: segmentColors[segments.length] };
+      segments.push(seg);
+      renderSegments();
+      drawGlobalBar();
+    };
+
+    function renderSegments() {
+      const container = document.getElementById('segmentsContainer'); container.innerHTML = '';
+      segments.forEach(seg => {
+        const el = document.createElement('div');
+        el.className = 'segment-control'; el.style.borderColor = seg.color;
+        el.innerHTML = `
+          <div class="segment-header">
+            <input type="text" class="segment-name" data-id="${seg.id}" value="${seg.name}" />
+            <input type="number" class="frame-input" data-id="${seg.id}" data-type="start" value="${seg.start}" min="0" max="${totalFrames}" />
+            <input type="number" class="frame-input" data-id="${seg.id}" data-type="end" value="${seg.end}" min="0" max="${totalFrames}" />
+            <button class="play-btn" data-id="${seg.id}">Play</button>
+            <button class="download-btn" data-id="${seg.id}">Download</button>
+          </div>
+          <div class="range-container">
+            <div class="range-highlight" id="highlight-${seg.id}" style="background:${seg.color}; border-color:${seg.color};"></div>
+            <input type="range" class="range-input" data-id="${seg.id}" data-type="start" min="0" max="${totalFrames}" value="${seg.start}" />
+            <input type="range" class="range-input" data-id="${seg.id}" data-type="end" min="0" max="${totalFrames}" value="${seg.end}" />
+          </div>
+        `;
+        container.appendChild(el);
+      });
+
+      // handlers
+      container.querySelectorAll('.segment-name').forEach(i => i.oninput = e => segments.find(s=>s.id==e.target.dataset.id).name=e.target.value);
+      container.querySelectorAll('.frame-input').forEach(input => {
+        input.oninput = e => {
+          const seg = segments.find(s=>s.id==e.target.dataset.id);
+          const val = Math.floor(+e.target.value);
+          if (e.target.dataset.type==='start') seg.start=Math.min(val,seg.end-1);
+          else seg.end=Math.max(val,seg.start+1);
+          syncSegment(seg);
+        };
+      });
+      container.querySelectorAll('.range-input').forEach(input => {
+        input.oninput = e => {
+          const seg = segments.find(s=>s.id==e.target.dataset.id);
+          const val = Math.floor(+e.target.value);
+          if (e.target.dataset.type==='start') seg.start=Math.min(val,seg.end-1);
+          else seg.end=Math.max(val,seg.start+1);
+          syncSegment(seg);
+        };
+      });
+      container.querySelectorAll('.play-btn').forEach(btn => btn.onclick = handlePlay);
+      container.querySelectorAll('.download-btn').forEach(btn => btn.onclick = handleDownload);
+      segments.forEach(s=>updateHighlight(s));
+    }
+
+    function syncSegment(seg) {
+      updateHighlight(seg);
+      drawGlobalBar();
+      document.querySelector(`.range-input[data-id='${seg.id}'][data-type='start']`).value=seg.start;
+      document.querySelector(`.range-input[data-id='${seg.id}'][data-type='end']`).value=seg.end;
+      document.querySelector(`.frame-input[data-id='${seg.id}'][data-type='start']`).value=seg.start;
+      document.querySelector(`.frame-input[data-id='${seg.id}'][data-type='end']`).value=seg.end;
+      if (selectedSegmentId===seg.id) playSeg(seg);
+    }
+
+    function handlePlay(e) {
+      const id = +e.target.dataset.id;
+      if (mainPlaying) mainBtn.onclick();
+      if (selectedSegmentId===id) {
+        animation.loop=false; animation.pause(); selectedSegmentId=null; e.target.textContent='Play';
+      } else {
+        selectedSegmentId=id; document.querySelectorAll('.play-btn').forEach(b=>b.textContent='Play');
+        e.target.textContent='Pause'; animation.loop=true; playSeg(segments.find(s=>s.id===id));
+      }
+    }
+
+    function handleDownload(e) {
+      const seg=segments.find(s=>s.id==e.target.dataset.id);
+      const mod=JSON.parse(JSON.stringify(originalData)); mod.ip=seg.start; mod.op=seg.end;
+      mod.markers=[{cm:seg.name,tm:0,dr:seg.end-seg.start}]; downloadJSON(mod,`trimmed_${seg.name}_${seg.start}_${seg.end}.json`);
+    }
+
+    function updateHighlight(seg) {
+      const hl=document.getElementById(`highlight-${seg.id}`);
+      hl.style.left=`${(seg.start/totalFrames)*100}%`;
+      hl.style.width=`${((seg.end-seg.start)/totalFrames)*100}%`;
+    }
+
+    function playSeg(seg) { animation.playSegments([seg.start,seg.end],true); }
+    function drawGlobalBar() {
+      const bar=document.getElementById('globalBar'); bar.innerHTML='';
+      segments.forEach(seg=>{ const d=document.createElement('div'); d.style.position='absolute';
+        d.style.left=`${(seg.start/totalFrames)*100}%`; d.style.width=`${((seg.end-seg.start)/totalFrames)*100}%`;
+        d.style.height='100%'; d.style.background=seg.color; d.style.borderRadius='4px'; bar.appendChild(d);
+      });
+    }
+
+    document.getElementById('downloadAll').onclick=()=>{
+      const mod=JSON.parse(JSON.stringify(originalData));
+      mod.markers=segments.map(s=>({cm:s.name,tm:s.start,dr:s.end-s.start})); downloadJSON(mod,'with_markers.json');
+    };
+
+    function downloadJSON(data, filename) {
+    // Create optimized JSON string
+    const jsonString = JSON.stringify(data, (key, value) => {
+      // Round numbers to 3 decimal places to reduce size
+      if (typeof value === 'number') {
+        return parseFloat(value.toFixed(3));
+      }
+      // Remove empty objects/arrays
+      if (value instanceof Object && Object.keys(value).length === 0) {
+        return undefined;
+      }
+      return value;
+    });
+
+    // Create and trigger download
+    const blob = new Blob([jsonString], {
+      type: 'application/json',
+      endings: 'transparent'
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.style.display = 'none';
+
+    document.body.appendChild(a);
+    a.click();
+
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  }
+  </script>
+</body>
+</html>
