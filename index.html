@@ -825,60 +825,75 @@ let allGradients = []; // To store all gradients from the Lottie file
 // Update extractGradientStops to extract all gradients
 // Extract all gradient paths from the Lottie JSON
 function extractGradientStops(json) {
-    const gradients = [];
-    try {
-        // Recursive function to find all gradient fills in the JSON
-        function findGradients(obj) {
-            if (typeof obj !== 'object' || obj === null) return;
+  const gradients = [];
+  const visited = new WeakSet();
+  const stack = [json]; // Use stack instead of recursion
 
-            if (obj.ty === 'gf' && obj.g?.k?.k && obj.g.p) {
-                const raw = obj.g.k.k;
-                const stops = obj.g.p;
-                const hasOpacity = raw.length === stops * 6;
-                const gradient = [];
+  try {
+    while (stack.length > 0) {
+      const obj = stack.pop();
 
-                for (let i = 0; i < stops; i++) {
-                    const base = i * 4;
-                    const offset = raw[base];
-                    const r = raw[base + 1] * 255;
-                    const g = raw[base + 2] * 255;
-                    const b = raw[base + 3] * 255;
-                    let a = 1;
+      // Skip non-objects/already visited
+      if (typeof obj !== 'object' || obj === null || visited.has(obj)) {
+        continue;
+      }
 
-                    if (hasOpacity) {
-                        const opaBase = stops * 4 + i * 2;
-                        a = raw[opaBase + 1];
-                    }
+      visited.add(obj);
 
-                    gradient.push({
-                        offset: Math.round(offset * 100),
-                        r: Math.round(r),
-                        g: Math.round(g),
-                        b: Math.round(b),
-                        a: parseFloat(a.toFixed(2)),
-                        _path: obj // Store reference to the gradient object
-                    });
-                }
-                gradients.push(gradient);
-            }
+      // Process gradient fills first
+      if (obj.ty === 'gf' && obj.g?.k?.k && obj.g.p) {
+        const raw = obj.g.k.k;
+        const stops = obj.g.p;
+        const hasOpacity = raw.length === stops * 6;
+        const gradient = [];
 
-            // Recursively search through all object properties
-            for (const key in obj) {
-                if (typeof obj[key] === 'object') {
-                    findGradients(obj[key]);
-                }
-            }
+        for (let i = 0; i < stops; i++) {
+          const base = i * 4;
+          const offset = raw[base];
+          const r = raw[base + 1] * 255;
+          const g = raw[base + 2] * 255;
+          const b = raw[base + 3] * 255;
+          let a = 1;
+
+          if (hasOpacity) {
+            const opaBase = stops * 4 + i * 2;
+            a = raw[opaBase + 1];
+          }
+
+          gradient.push({
+            offset: Math.round(offset * 100),
+            r: Math.round(r),
+            g: Math.round(g),
+            b: Math.round(b),
+            a: parseFloat(a.toFixed(2)),
+            _path: obj
+          });
         }
+        gradients.push(gradient);
+      }
 
-        findGradients(json);
-        return gradients;
-    } catch (error) {
-        console.error('Error extracting gradients:', error);
-        alert('Error processing Lottie structure. Check console for details.');
-        return [];
+      // Add child nodes to stack
+      for (const value of Object.values(obj)) {
+        if (typeof value === 'object' && value !== null) {
+          // Handle arrays efficiently
+          if (Array.isArray(value)) {
+            // Add array elements in reverse order to maintain processing order
+            for (let i = value.length - 1; i >= 0; i--) {
+              stack.push(value[i]);
+            }
+          } else {
+            stack.push(value);
+          }
+        }
+      }
     }
-}
 
+    return gradients;
+  } catch (error) {
+    console.error('Error extracting gradients:', error);
+    return [];
+  }
+}
 function updateLottieGradient() {
     if (!lottieData || allGradients.length === 0) return;
 
