@@ -630,9 +630,9 @@
     }
 
     function updateDownloadButtons() {
-  const hasEditableItems = colorRefs.length > 0 || allGradients.length > 0;
-  document.getElementById('downloadJsonBtn').style.display = hasEditableItems ? 'inline-block' : 'none';
-  document.getElementById('downloadGifBtn' ).style.display = hasEditableItems ? 'inline-block' : 'none';
+   const hasFile = !!lottieData;              // any file loaded?
+ document.getElementById('downloadJsonBtn').style.display = hasFile ? 'inline-block' : 'none';
+document.getElementById('downloadGifBtn' ).style.display = hasFile ? 'inline-block' : 'none';
 }
 
 
@@ -1227,6 +1227,7 @@ function updateLottieGradient() {
           allGradients = extractGradientStops(lottieData);
           renderGradientEditor();
           updateLottieGradient();
+          updateDownloadButtons(); 
           document.getElementById('openOverlayBtn').disabled = false;
           document.getElementById('openOverlayBtn').style.opacity = "1";
 
