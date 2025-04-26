@@ -116,6 +116,7 @@
       if (!animation) return;
       selectedSegmentId = null;
       document.querySelectorAll('.play-btn').forEach(b => b.textContent = 'Play');
+       animation.resetSegments(true);
       if (mainPlaying) {
         animation.loop = false;
         animation.pause();
@@ -133,18 +134,27 @@
 
 
     function initAnim(data) {
+      // always reset UI state …
       segments.length = 0;
       selectedSegmentId = null;
       mainPlaying = false;
       mainBtn.disabled = false;
       mainBtn.textContent = 'Play All';
       document.getElementById('segmentsContainer').innerHTML = '';
+
       if (animation) animation.destroy();
+
+      /* hand Lottie a FRESH clone so it can mutate freely */
+      const playbackData = JSON.parse(JSON.stringify(data));
+
       animation = lottie.loadAnimation({
-        container: document.getElementById('animation-container'),
-        animationData: data,
-        renderer: 'svg', loop: false, autoplay: false
+        container : document.getElementById('animation-container'),
+        animationData : playbackData,
+        renderer  : 'svg',
+        loop      : false,
+        autoplay  : false
       });
+
       animation.addEventListener('DOMLoaded', () => {
         totalFrames = Math.floor(animation.totalFrames);
         document.getElementById('addSegment').disabled = false;
@@ -154,9 +164,10 @@
       });
     }
 
+
     function loadMarkers(markers) {
       markers.slice(0, maxSegments).forEach((m, i) => {
-        const start = Math.max(0, Math.floor(m.tm));
+        const start = Math.max(0, Math.floor(m.tm - originalData.ip));   // adjust for comp ip
         const duration = Math.max(1, Math.floor(m.dr));
         const end = Math.min(totalFrames, start + duration);
         segments.push({ id: Date.now() + i, start, end, name: m.cm || `Marker ${i+1}`, color: segmentColors[segments.length] });
@@ -243,8 +254,13 @@
 
     function handleDownload(e) {
       const seg=segments.find(s=>s.id==e.target.dataset.id);
-      const mod=JSON.parse(JSON.stringify(originalData)); mod.ip=seg.start; mod.op=seg.end;
-      mod.markers=[{cm:seg.name,tm:0,dr:seg.end-seg.start}]; downloadJSON(mod,`trimmed_${seg.name}_${seg.start}_${seg.end}.json`);
+      // single-segment download
+      const mod = stripRuntimeFlags(JSON.parse(JSON.stringify(originalData)));
+    mod.ip = seg.start;
+    mod.op = seg.end;
+    mod.markers = [{ cm: seg.name, tm: 0, dr: seg.end - seg.start }];
+    downloadJSON(mod, `trimmed_${seg.name}_${seg.start}_${seg.end}.json`);
+
     }
 
     function updateHighlight(seg) {
@@ -263,9 +279,31 @@
     }
 
     document.getElementById('downloadAll').onclick=()=>{
-      const mod=JSON.parse(JSON.stringify(originalData));
-      mod.markers=segments.map(s=>({cm:s.name,tm:s.start,dr:s.end-s.start})); downloadJSON(mod,'with_markers.json');
+      // “Download JSON with Markers”
+      const mod = stripRuntimeFlags(JSON.parse(JSON.stringify(originalData)));
+      mod.markers = segments.map(s => ({ cm: s.name, tm: s.start + originalData.ip, dr: s.end - s.start }));
+
+      downloadJSON(mod, 'with_markers.json');
     };
+
+    function stripRuntimeFlags(obj) {
+      if (Array.isArray(obj)) {
+        return obj.map(stripRuntimeFlags);        // keep arrays intact
+      }
+
+      if (obj && typeof obj === 'object') {
+        const out = {};
+        for (const [k, v] of Object.entries(obj)) {
+          if (k.startsWith('_') || k === 'completed' || k === '__complete') {
+            continue;                             // drop helper flag
+          }
+          out[k] = stripRuntimeFlags(v);          // keep everything else
+        }
+        return out;
+      }
+
+      return obj;  // primitives
+    }
 
     function downloadJSON(data, filename) {
     // Create optimized JSON string
