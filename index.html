@@ -294,6 +294,21 @@
     border: none;
   }
 
+  .setting-row {
+    margin: 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .setting-row label {
+    min-width: 160px;
+  }
+
+  .setting-row input[type="text"] {
+    width: 80px;
+  }
+
 
   </style>
 </head>
@@ -319,13 +334,47 @@
         <option value="2">2x</option>
       </select>
     </div>
-    <div class="gif-settings">
-      <label>Background:</label>
-      <div class="checkbox-container">
-        <input type="checkbox" id="transparentBg" checked>
-        <label for="transparentBg">Transparent</label>
-      </div>
+
+
+      <div class="gif-settings">
+  <label>Background:</label>
+  <div class="checkbox-container">
+    <input type="checkbox" id="transparentBg" checked>
+    <label for="transparentBg">Transparent</label>
+
+    <!-- new: custom BG picker, starts hidden -->
+    <input type="color" id="bgColorPicker" value="#ffffff"
+           style="display:none; margin-left:8px;">
+    <input type="text" id="bgHexInput" value="#ffffff"
+           style="display:none; width:80px; margin-left:4px;">
+    <button id="gifSettingsBtn" class="btn">⚙</button>
+  </div>
+</div>
+
+
+<!-- Settings Overlay -->
+<div class="overlay" id="renderSettingsOverlay">
+  <div class="overlay-content" style="width:400px;">
+    <span class="overlay-close">&times;</span>
+    <h3>GIF Render Settings</h3>
+
+    <div class="setting-row">
+      <label>Transparency Key Color:</label>
+      <input type="color" id="keyColor" value="#000000">
+      <input type="text" id="keyHex" value="#000000">
     </div>
+
+    <div class="setting-row">
+      <label>Replacement Color:</label>
+      <input type="color" id="replaceColor" value="#010101">
+      <input type="text" id="replaceHex" value="#010101">
+    </div>
+
+    <button onclick="closeSettings()" class="btn">Save</button>
+  </div>
+</div>
+
+
     <div class="button-group">
       <button id="downloadJsonBtn" style="display:none;">Download JSON</button>
       <button id="downloadGifBtn" style="display:none;">Download GIF</button>
@@ -335,6 +384,7 @@
       <span>Generating GIF...</span>
     </div>
   </div>
+  <div id="gifContainer" style="position:absolute; top:-9999px; left:-9999px; width:0; height:0; overflow:hidden"></div>
   <div id="previewArea">
     <h2>Live Preview<button id="openOverlayBtn" class="btn" style="margin-left: 10px; opacity: 20%;" disabled>Edit</button></h2>
     <div id="lottiePreview" class="checkerboard"></div>
@@ -357,6 +407,10 @@
     let currentSpeed = 1.0;
     let originalFrameRate;
     let animWidth, animHeight; // Store animation dimensions
+
+    let keyColor = '#000000';
+    let replaceColor = '#010101';
+
 
     function rgbToHex(r, g, b) {
       return "#" + [r, g, b].map(x => Math.round(x * 255).toString(16).padStart(2, "0")).join("");
@@ -411,7 +465,7 @@
       reloadLottiePreview();
     }
 
-    function renderColorPickers() {
+   function renderColorPickers() {
       const editor = document.getElementById('colorEditor');
       editor.innerHTML = "";
       const groupedColors = {};
@@ -571,114 +625,326 @@
         document.getElementById("downloadJsonBtn").style.display = "inline-block";
         document.getElementById("downloadGifBtn").style.display = "inline-block";
       }
+
+      updateDownloadButtons();
     }
+
+    function updateDownloadButtons() {
+  const hasEditableItems = colorRefs.length > 0 || allGradients.length > 0;
+  document.getElementById('downloadJsonBtn').style.display = hasEditableItems ? 'inline-block' : 'none';
+  document.getElementById('downloadGifBtn' ).style.display = hasEditableItems ? 'inline-block' : 'none';
+}
+
 
     function reloadLottiePreview() {
       if (animationInstance) animationInstance.destroy();
 
-      // Modify original data with current speed
-      lottieData.fr = originalFrameRate * currentSpeed;
+      // work on the master, but hand a clone to the player
+      const playbackData = JSON.parse(JSON.stringify(lottieData));
+
+      // keep frame-rate tweak, or copy it here:
+      playbackData.fr = originalFrameRate * currentSpeed;
 
       animationInstance = lottie.loadAnimation({
         container: document.getElementById('lottiePreview'),
-        renderer: 'svg',
-        loop: true,
-        autoplay: true,
-        animationData: lottieData
+        renderer : 'svg',
+        loop     : true,
+        autoplay : true,
+        animationData: playbackData     // ← clone, not the master object
       });
     }
 
+    function replacePureBlack(obj) {
+      // Convert our key/replacement colors to 0-1 range RGB arrays
+      const keyRGB = hexToRgb(keyColor);
+      const replaceRGB = hexToRgb(replaceColor);
 
-function generateGif() {
+      // Threshold for color matching (accounts for floating point precision)
+      const COLOR_THRESHOLD = 0.01;
+
+      function shouldReplace(r, g, b) {
+        return (
+          Math.abs(r - keyRGB[0]) < COLOR_THRESHOLD &&
+          Math.abs(g - keyRGB[1]) < COLOR_THRESHOLD &&
+          Math.abs(b - keyRGB[2]) < COLOR_THRESHOLD
+        );
+      }
+
+      function processColor(colorArray) {
+        const [r, g, b, a = 1] = colorArray;
+        if (shouldReplace(r, g, b)) {
+          return [...replaceRGB, a];
+        }
+        return colorArray;
+      }
+
+      // Recursive object processing
+      function processObject(obj) {
+        if (Array.isArray(obj)) {
+          obj.forEach(processObject);
+        } else if (obj && typeof obj === 'object') {
+          // Solid fills/strokes
+          if (obj.c?.k && Array.isArray(obj.c.k)) {
+            obj.c.k = processColor(obj.c.k);
+          }
+
+          // Gradients
+          if (obj.ty === 'gf' && obj.g?.k?.k) {
+            const raw = obj.g.k.k;
+            const stops = obj.g.p;
+            const hasOpacity = raw.length === stops * 6;
+
+            // Process color stops
+            for (let i = 0; i < stops; i++) {
+              const base = i * 4;
+              const r = raw[base + 1];
+              const g = raw[base + 2];
+              const b = raw[base + 3];
+
+              if (shouldReplace(r, g, b)) {
+                raw[base + 1] = replaceRGB[0];
+                raw[base + 2] = replaceRGB[1];
+                raw[base + 3] = replaceRGB[2];
+              }
+            }
+
+            // Process opacity stops if they exist
+            if (hasOpacity) {
+              const colorLen = stops * 4;
+              for (let i = 0; i < stops; i++) {
+                const opaBase = colorLen + i * 2;
+                const r = raw[opaBase + 1];
+                // No color in opacity stops, just leave as-is
+              }
+            }
+          }
+
+          // Recursively process all object properties
+          for (const key in obj) {
+            processObject(obj[key]);
+          }
+        }
+      }
+
+      processObject(obj);
+    }
+
+    document.getElementById('gifSettingsBtn').addEventListener('click', () => {
+      // Refresh inputs with current values before showing
+      document.getElementById('keyColor').value = keyColor;
+      document.getElementById('keyHex').value = keyColor;
+      document.getElementById('replaceColor').value = replaceColor;
+      document.getElementById('replaceHex').value = replaceColor;
+
+      document.getElementById('renderSettingsOverlay').style.display = 'flex';
+    });
+
+
+    function closeSettings() {
+      // Update global variables with current input values
+      keyColor = document.getElementById('keyColor').value;
+      replaceColor = document.getElementById('replaceColor').value;
+      document.getElementById('renderSettingsOverlay').style.display = 'none';
+    }
+
+    // Initialize when page loads
+    initSettings();
+
+
+
+
+// gif generation Code
+
+
+
+
+    const transparentCheckbox = document.getElementById('transparentBg');
+    const bgPicker            = document.getElementById('bgColorPicker');
+    const bgHexInput          = document.getElementById('bgHexInput');
+
+    // Show/hide the custom‐color inputs when the checkbox toggles
+    function updateBgInputs() {
+      if (transparentCheckbox.checked) {
+        bgPicker.style.display   = 'none';
+        bgHexInput.style.display = 'none';
+      } else {
+        bgPicker.style.display   = 'inline-block';
+        bgHexInput.style.display = 'inline-block';
+      }
+    }
+    transparentCheckbox.addEventListener('change', updateBgInputs);
+    updateBgInputs();
+
+    // Keep color picker and hex input in sync
+    bgPicker.addEventListener('input', () => {
+      bgHexInput.value = bgPicker.value;
+    });
+    bgHexInput.addEventListener('change', () => {
+      if (/^#[0-9A-F]{6}$/i.test(bgHexInput.value)) {
+        bgPicker.value = bgHexInput.value;
+      } else {
+        alert('Invalid hex. Use format like #FFCC00');
+        bgHexInput.value = bgPicker.value;
+      }
+    });
+
+
+// custom settings
+
+
+function initSettings() {
+  // Initialize inputs with current values
+  document.getElementById('keyColor').value = keyColor;
+  document.getElementById('keyHex').value = keyColor;
+  document.getElementById('replaceColor').value = replaceColor;
+  document.getElementById('replaceHex').value = replaceColor;
+
+  // Add real-time sync between color pickers and hex inputs
+  function createSync(colorId, hexId) {
+    const colorInput = document.getElementById(colorId);
+    const hexInput = document.getElementById(hexId);
+
+    colorInput.addEventListener('input', () => {
+      hexInput.value = colorInput.value;
+    });
+
+    hexInput.addEventListener('input', (e) => {
+      const newVal = e.target.value.startsWith('#') ? e.target.value : `#${e.target.value}`;
+      if (/^#[0-9A-F]{6}$/i.test(newVal)) {
+        colorInput.value = newVal;
+        hexInput.value = newVal;
+      }
+    });
+  }
+
+  createSync('keyColor', 'keyHex');
+  createSync('replaceColor', 'replaceHex');
+}
+
+
+
+
+    function generateGif() {
   const loadingDiv = document.getElementById('loading');
   loadingDiv.style.display = 'flex';
 
-  const scaleValue = parseFloat(document.getElementById('gifScale').value);
-  const useTransparent = document.getElementById('transparentBg').checked;
+  // 1. deep-clone and patch blacks
+  const gifData = JSON.parse(JSON.stringify(lottieData));
+  replacePureBlack(gifData);
 
-  const aspectRatio = animWidth / animHeight;
-  const gifWidth = Math.round(400 * scaleValue);
-  const gifHeight = Math.round(gifWidth / aspectRatio);
-
-  const GIF_FPS = 30;
-  const PLAYBACK_MULTIPLIER = 0.127;
-  const FRAME_DELAY_CS = Math.round((100 / GIF_FPS) * (1 / PLAYBACK_MULTIPLIER)); // centiseconds
-
-  const animationDuration = (lottieData.op - lottieData.ip) / originalFrameRate;
-  const adjustedDuration = animationDuration / currentSpeed;
-
-  let totalFrames = Math.floor(adjustedDuration * GIF_FPS);
-  totalFrames = Math.min(totalFrames, 500);
-
-  const gif = new GIF({
-    workers: 2,
-    quality: 10,
-    width: gifWidth,
-    height: gifHeight,
-    workerScript: './gif.worker.js',
-    transparent: useTransparent ? 'rgba(0,0,0,0)' : null,
-    background: useTransparent ? 'rgba(0,0,0,0)' : '#FFFFFF'
+  // 2. set up a hidden Lottie instance just for the export
+  const tmpContainer = document.getElementById('gifContainer');
+  tmpContainer.innerHTML = '';
+  const tmpAnim = lottie.loadAnimation({
+    container: tmpContainer,
+    renderer: 'svg',
+    loop: true,
+    autoplay: false,
+    animationData: gifData
   });
+  tmpAnim.setSpeed(currentSpeed);
+  tmpAnim.pause();
 
-  animationInstance.pause();
+  // 3. original math for frames
+  const scaleValue = parseFloat(document.getElementById('gifScale').value);
+  const aspectRatio = animWidth / animHeight;
+  const gifW = Math.round(400 * scaleValue);
+  const gifH = Math.round(gifW / aspectRatio);
+  const GIF_FPS = 30;
+  const FRAME_DELAY_CS = Math.round((100 / GIF_FPS) * (1 / 0.127));
+  const animDur = (lottieData.op - lottieData.ip) / originalFrameRate;
+  const totalFrames = Math.min(Math.floor(animDur / currentSpeed * GIF_FPS), 500);
 
-  const previewContainer = document.getElementById('lottiePreview');
-  const svgElement = previewContainer.querySelector('svg');
+  const useTransparent = transparentCheckbox.checked;
+   const customBgColor  = bgPicker.value;  // e.g. "#abcdef"
 
-  function captureFrame(frameIndex) {
-    if (frameIndex >= totalFrames) {
-      gif.on('finished', function (blob) {
+   // 5. build the GIF.js options
+  const KEY_COLOR = parseInt(keyColor.replace('#', '0x'), 16);
+
+const gifOpts = {
+  workers:      2,
+  quality:      10,
+  width:        gifW,
+  height:       gifH,
+  workerScript: './gif.worker.js'
+};
+
+if (useTransparent) {
+  // only include transparent when you want to chroma‐key
+  gifOpts.transparent = KEY_COLOR;
+} else {
+  // only include background when you want a solid fill
+  gifOpts.background = customBgColor;
+}
+
+const gif = new GIF(gifOpts);
+
+  const svgEl = tmpContainer.querySelector('svg');
+
+  function capture(i) {
+    if (i >= totalFrames) {
+      gif.on('finished', blob => {
+        // cleanup
+        tmpAnim.destroy();
+        tmpContainer.innerHTML = '';
+        loadingDiv.style.display = 'none';
+        // download
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
-        a.download = 'animation.gif';
+        a.href = url; a.download = 'animation.gif';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        animationInstance.play();
-        loadingDiv.style.display = 'none';
       });
       gif.render();
       return;
     }
 
-    const timeInAdjusted = frameIndex / GIF_FPS;
-    const originalTime = timeInAdjusted * currentSpeed;
-    const frame = lottieData.ip + originalTime * originalFrameRate;
-
-    animationInstance.goToAndStop(frame, true);
+    // go to frame on the *temporary* instance
+    const t = i / GIF_FPS;
+    const frame = lottieData.ip + t * originalFrameRate * currentSpeed;
+    tmpAnim.goToAndStop(frame, true);
 
     setTimeout(() => {
-      const clonedSvg = svgElement.cloneNode(true);
-      clonedSvg.setAttribute('viewBox', `0 0 ${animWidth} ${animHeight}`);
-      clonedSvg.setAttribute('width', gifWidth);
-      clonedSvg.setAttribute('height', gifHeight);
+      // snapshot
+      const cloneSvg = svgEl.cloneNode(true);
+      cloneSvg.setAttribute('viewBox', `0 0 ${animWidth} ${animHeight}`);
+      cloneSvg.setAttribute('width', gifW);
+      cloneSvg.setAttribute('height', gifH);
 
       const canvas = document.createElement('canvas');
-      canvas.width = gifWidth;
-      canvas.height = gifHeight;
+      canvas.width = gifW; canvas.height = gifH;
       const ctx = canvas.getContext('2d');
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      const svgData = new XMLSerializer().serializeToString(clonedSvg);
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(svgBlob);
+      if (useTransparent) {
+        ctx.fillStyle = keyColor;             // the hex string is fine for fillStyle
+        ctx.fillRect(0, 0, gifW, gifH);
+      } else {
+        ctx.fillStyle = customBgColor;
+        ctx.fillRect(0, 0, gifW, gifH);
+      }
+
+      
+      const data = new XMLSerializer().serializeToString(cloneSvg);
+      const blob = new Blob([data], {type:'image/svg+xml'});
+      const url = URL.createObjectURL(blob);
 
       const img = new Image();
-      img.onload = function () {
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      img.onload = () => {
+        ctx.drawImage(img,0,0,gifW,gifH);
         URL.revokeObjectURL(url);
-
-        gif.addFrame(canvas, { delay: FRAME_DELAY_CS, copy: true });
-        captureFrame(frameIndex + 1);
+        gif.addFrame(canvas,{ delay: FRAME_DELAY_CS, copy: true });
+        capture(i+1);
       };
       img.src = url;
     }, 100);
   }
 
-  captureFrame(0);
+  capture(0);
 }
+
+
 
 function rgbToHexGr(r, g, b) {
   return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
@@ -815,6 +1081,9 @@ function updateGradientPreview() {
     accordion.appendChild(content);
     container.appendChild(accordion);
 });
+
+updateDownloadButtons();
+
 }
 
 
@@ -895,49 +1164,42 @@ function extractGradientStops(json) {
   }
 }
 function updateLottieGradient() {
-    if (!lottieData || allGradients.length === 0) return;
+  if (!lottieData || allGradients.length === 0) return;
 
-    try {
-        const updatedLottieData = JSON.parse(JSON.stringify(lottieData));
+  allGradients.forEach(gradientStops => {
+    const gradientObj = gradientStops[0]._path;      // one path per gradient
+    const raw   = gradientObj.g.k.k;
+    const stops = gradientObj.g.p;
+    const hasOpacity = raw.length === stops * 6;
+    const colourLen  = stops * 4;
 
-        allGradients.forEach((gradientStops) => {
-            gradientStops.forEach((stop) => {
-                const gradientObj = stop._path;
-                const raw = gradientObj.g.k.k;
-                const stops = gradientObj.g.p;
-                const i = gradientStops.indexOf(stop);
-                const base = i * 4;
-                const colorLen  = stops * 4;
-                // Update color values
-                raw[base] = stop.offset / 100;
-                raw[base + 1] = stop.r / 255;
-                raw[base + 2] = stop.g / 255;
-                raw[base + 3] = stop.b / 255;
+    // 1. write/overwrite the colour section
+    gradientStops.forEach((stop, i) => {
+      const base = i * 4;
+      raw[base]     = stop.offset / 100;
+      raw[base + 1] = stop.r / 255;
+      raw[base + 2] = stop.g / 255;
+      raw[base + 3] = stop.b / 255;
+    });
 
-                // Update opacity if available
-
-                gradientStops.forEach((stop, i) => {
-                    const opaBase = colorLen + i * 2;
-                      raw[opaBase]     = stop.offset / 100;
-                        raw[opaBase + 1] = stop.a;
-                        });
-
-
-            });
-        });
-
-        // Clear previous animation
-        const container = document.getElementById('lottiePreview');
-        container.innerHTML = '';
-
-        // Load new animation
-      reloadLottiePreview();
-    } catch (error) {
-        console.error('Error updating animation:', error);
-        document.getElementById('lottiePreview').innerHTML =
-            'Error rendering animation. Check console for details.';
+    // 2. write the opacity section ***only once***
+    if (!hasOpacity && gradientStops.some(s => s.a !== 1)) {
+      for (let i = 0; i < stops; i++) {
+        raw[colourLen + i * 2]     = gradientStops[i].offset / 100;
+        raw[colourLen + i * 2 + 1] = gradientStops[i].a;
+      }
+    } else if (hasOpacity) {
+      for (let i = 0; i < stops; i++) {
+        const opaBase = colourLen + i * 2;
+        raw[opaBase]     = gradientStops[i].offset / 100;
+        raw[opaBase + 1] = gradientStops[i].a;
+      }
     }
+  });
+
+  reloadLottiePreview();   // refresh the viewer
 }
+
 
 
 
@@ -979,13 +1241,28 @@ function updateLottieGradient() {
       reader.readAsText(file);
     });
 
+    function cleanForExport(obj) {
+  if (Array.isArray(obj)) return obj.map(cleanForExport);
+
+  if (typeof obj === 'object' && obj !== null) {
+    const clean = {};
+    for (const [k, v] of Object.entries(obj)) {
+      if (k.startsWith('_') || k === 'completed' || k === '__complete') continue;
+      clean[k] = cleanForExport(v);
+    }
+    return clean;
+  }
+  return obj;
+}
+
+
     document.getElementById("downloadJsonBtn").addEventListener("click", () => {
       // Create optimized copy
-      const modifiedData = JSON.parse(JSON.stringify(lottieData));
-      modifiedData.fr = originalFrameRate * currentSpeed;
+      const exportData = cleanForExport(lottieData);        // 🧹
+    exportData.fr = originalFrameRate * currentSpeed;
 
       // Stringify with no whitespace and minimal precision
-      const jsonString = JSON.stringify(modifiedData, (key, value) => {
+      const jsonString = JSON.stringify(exportData, (key, value) => {
         // Round numbers to 3 decimal places to reduce size
         if (typeof value === 'number') {
           return parseFloat(value.toFixed(3));
