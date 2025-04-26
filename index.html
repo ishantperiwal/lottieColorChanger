@@ -902,46 +902,47 @@ const gif = new GIF(gifOpts);
 
     // go to frame on the *temporary* instance
     const t = i / GIF_FPS;
-    const frame = lottieData.ip + t * originalFrameRate * currentSpeed;
-    tmpAnim.goToAndStop(frame, true);
+             const frame = lottieData.ip + t * originalFrameRate * currentSpeed;
+             tmpAnim.goToAndStop(frame, true);
 
-    setTimeout(() => {
-      // snapshot
-      const cloneSvg = svgEl.cloneNode(true);
-      cloneSvg.setAttribute('viewBox', `0 0 ${animWidth} ${animHeight}`);
-      cloneSvg.setAttribute('width', gifW);
-      cloneSvg.setAttribute('height', gifH);
+             // Force reflow to ensure frame renders
+             void tmpContainer.offsetHeight;
 
-      const canvas = document.createElement('canvas');
-      canvas.width = gifW; canvas.height = gifH;
-      const ctx = canvas.getContext('2d');
+             requestAnimationFrame(() => {
+                 const cloneSvg = svgEl.cloneNode(true);
+                 cloneSvg.setAttribute('viewBox', `0 0 ${animWidth} ${animHeight}`);
+                 cloneSvg.setAttribute('width', gifW);
+                 cloneSvg.setAttribute('height', gifH);
 
+                 const canvas = document.createElement('canvas');
+                 canvas.width = gifW;
+                 canvas.height = gifH;
+                 const ctx = canvas.getContext('2d');
 
-      if (useTransparent) {
-        ctx.fillStyle = keyColor;             // the hex string is fine for fillStyle
-        ctx.fillRect(0, 0, gifW, gifH);
-      } else {
-        ctx.fillStyle = customBgColor;
-        ctx.fillRect(0, 0, gifW, gifH);
-      }
+                 if (useTransparent) {
+                     ctx.fillStyle = keyColor;
+                     ctx.fillRect(0, 0, gifW, gifH);
+                 } else {
+                     ctx.fillStyle = customBgColor;
+                     ctx.fillRect(0, 0, gifW, gifH);
+                 }
 
-      
-      const data = new XMLSerializer().serializeToString(cloneSvg);
-      const blob = new Blob([data], {type:'image/svg+xml'});
-      const url = URL.createObjectURL(blob);
+                 const data = new XMLSerializer().serializeToString(cloneSvg);
+                 const blob = new Blob([data], { type: 'image/svg+xml' });
+                 const url = URL.createObjectURL(blob);
 
-      const img = new Image();
-      img.onload = () => {
-        ctx.drawImage(img,0,0,gifW,gifH);
-        URL.revokeObjectURL(url);
-        gif.addFrame(canvas,{ delay: FRAME_DELAY_CS, copy: true });
-        capture(i+1);
-      };
-      img.src = url;
-    }, 100);
-  }
+                 const img = new Image();
+                 img.onload = () => {
+                     ctx.drawImage(img, 0, 0, gifW, gifH);
+                     URL.revokeObjectURL(url);
+                     gif.addFrame(canvas, { delay: FRAME_DELAY_CS, copy: true });
+                     capture(i + 1);
+                 };
+                 img.src = url;
+             });
+         }
 
-  capture(0);
+         capture(0);
 }
 
 
@@ -1227,7 +1228,7 @@ function updateLottieGradient() {
           allGradients = extractGradientStops(lottieData);
           renderGradientEditor();
           updateLottieGradient();
-          updateDownloadButtons(); 
+          updateDownloadButtons();
           document.getElementById('openOverlayBtn').disabled = false;
           document.getElementById('openOverlayBtn').style.opacity = "1";
 
