@@ -2368,13 +2368,13 @@ a.download = editedName; // Use the potentially modified edited name
              };
 
              // Set background or transparency based on checkbox
-             if (!useTransparentBg) {
-                 // Use the keyColor (user-defined, defaults to black) for transparency
-                 gifOptions.transparent = parseInt(keyColor.replace('#', '0x'), 16);
-             } else {
-                 // Use the user-selected solid background color
-                 gifOptions.background = customBgColor;
-             }
+               if (useTransparentBg) {
+                   // Solid background mode
+                  gifOptions.background = customBgColor;
+              } else {
+                  // Transparent background mode
+                  gifOptions.transparent = parseInt(keyColor.replace('#', '0x'), 16);
+              }
 
              // --- Initialize GIF Encoder ---
              let gif;
@@ -2421,7 +2421,7 @@ a.download = editedName; // Use the potentially modified edited name
                      const ctx = canvas.getContext('2d');
 
                      // Draw background color OR the transparency key color onto the canvas
-                     ctx.fillStyle = useTransparentBg ? keyColor : customBgColor;
+                     ctx.fillStyle = useTransparentBg ? customBgColor : keyColor;
                      ctx.fillRect(0, 0, gifW, gifH);
 
                      // Serialize the current state of the SVG element
