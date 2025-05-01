@@ -2087,7 +2087,7 @@ dragDropOverlay.addEventListener('drop', handleDrop);
                           const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize); // Get actual root font size dynamically
                           
                           // Convert windowRect.height to rem
-                          const paddingTopInRem = (windowRect.height + 20) / rootFontSize;
+                          const paddingTopInRem = (windowRect.height + 32) / rootFontSize;
                           
                           // Apply the rem value
                           previewArea.style.paddingTop = `${paddingTopInRem}rem`;
