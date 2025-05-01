@@ -2081,7 +2081,21 @@ dragDropOverlay.addEventListener('drop', handleDrop);
                          const previewRect = previewArea.getBoundingClientRect();
                          // Get dimensions and position of the window container RELATIVE TO VIEWPORT
                          const windowRect = windowContainer.getBoundingClientRect();
-                          previewArea.style.paddingTop = `${windowRect.height + 20}px`;
+
+
+                          // Assume the root font size is 16px (change this if your base size differs)
+                          const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize); // Get actual root font size dynamically
+                          
+                          // Convert windowRect.height to rem
+                          const paddingTopInRem = (windowRect.height + 20) / rootFontSize;
+                          
+                          // Apply the rem value
+                          previewArea.style.paddingTop = `${paddingTopInRem}rem`;
+                          
+                          console.log(`Padding Top in rem: ${paddingTopInRem}rem`);
+
+
+
                          // --- Log initial positions ---
                          console.log('Preview Area Rect:', previewRect);
                          console.log('Window Container Rect (Initial):', windowRect);
