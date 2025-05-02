@@ -2815,8 +2815,35 @@ if (initialPositionRef && containerToPosition) {
     });
 }
 
+      let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    repositionWindowContainerX();
+  }, 150); // adjust debounce delay if you like
+});
+      
     });
 
+  function repositionWindowContainerX() {
+  const container = document.querySelector('.window-container');
+  const card      = document.getElementById('jsonEditorCard');
+  if (!container || !card) return;
+
+  // 1. Get the bounding boxes
+  const cardRect = card.getBoundingClientRect();
+  const winRect  = container.getBoundingClientRect();
+
+  // 2. Compute the X coordinate so that container’s center
+  //    aligns with card’s center
+  const targetLeft = cardRect.left
+                   - (winRect.width   / 2);
+
+  // 3. Apply it directly (absolute positioning assumed in your CSS)
+  container.style.left = `${targetLeft-20}px`;
+}
+
+    
   </script>
 </body>
 </html>
