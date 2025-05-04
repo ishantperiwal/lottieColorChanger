@@ -2855,6 +2855,19 @@ function repositionWindowContainerX() {
   // 3. Apply it directly (absolute positioning assumed in your CSS)
   container.style.left = `${targetLeft-20}px`;
 }
+
+
+window.addEventListener('load', () => {
+const overlay   = document.querySelector('.drag-drop-overlay');
+const container = document.querySelector('.window-container');
+if (!overlay || !container) return;
+
+const { top, left } = overlay.getBoundingClientRect();
+container.style.top        = `${top  + window.scrollY}px`;
+container.style.left       = `${left + window.scrollX}px`;
+container.style.visibility = 'visible';
+});
+    
   </script>
 </body>
 </html>
