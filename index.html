@@ -94,9 +94,7 @@
 
     #previewArea {
       flex: 1.1;
-      position: sticky;
       top: var(--spacing-xl);
-      height: fit-content; /* Let content determine height */
       align-items: center; /* Center items in preview area */
       gap: var(--spacing-lg);
     }
@@ -2096,7 +2094,7 @@ dragDropOverlay.addEventListener('drop', handleDrop);
  const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize); // Get actual root font size dynamically
 
  // Convert windowRect.height to rem
- const paddingTopInRem = (windowRect.height + 32) / rootFontSize;
+ const paddingTopInRem = (windowRect.height + 46) / rootFontSize;
 
  // Apply the rem value
  previewArea.style.paddingTop = `${paddingTopInRem}rem`;
