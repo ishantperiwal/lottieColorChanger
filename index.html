@@ -598,7 +598,7 @@ animation: slideDownFadeIn 950ms cubic-bezier(0.1,0.1,0.1,1) forwards;
       padding: var(--spacing-md) var(--spacing-lg);
       box-shadow: var(--shadow-md);
     }
-    .section-card h3 {
+    .section-card h3, .editor-heading {
       font-size: 0.75rem; /* Smaller heading */
       font-weight: 700; /* Bold */
       text-transform: uppercase;
@@ -608,6 +608,8 @@ animation: slideDownFadeIn 950ms cubic-bezier(0.1,0.1,0.1,1) forwards;
       display: block; /* Ensure it takes full width */
     }
 
+    .editor-heading{ margin:0;   margin-top: 2.6rem ;  margin-bottom: 1.6rem ;  margin-left: 0.4rem ;}
+    
     /* Headers within cards */
     .json-header, .gif-settings-header {
       display: flex;
@@ -1149,7 +1151,7 @@ animation: slideDownFadeIn 950ms cubic-bezier(0.1,0.1,0.1,1) forwards;
   </style>
 </head>
 <body>
-
+  
   <div id="uploadWrapper">
     <label for="fileInput" id="uploadLabel" class="btn btn--primary">Choose Lottie JSON</label>
     <div class="drag-drop-overlay">Drop Your File</div>
@@ -1169,6 +1171,8 @@ animation: slideDownFadeIn 950ms cubic-bezier(0.1,0.1,0.1,1) forwards;
 
   <div id="mainContent">
     <div id="editorArea">
+    <h3 id="colorInstancesLabel" class="editor-heading"> Detetcted Colors/Gradients </h3>
+      
       <div id="colorEditor">
         </div>
       <div id="stopEditor">
