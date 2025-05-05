@@ -117,11 +117,12 @@
       text-align: center; /* Center the label/button */
     }
 
-    .drag-drop-overlay {
+      .drag-drop-overlay {
 
-    padding: 8rem 6rem;
-    border: 2px dashed var(--color-border);
-    border-radius: var(--border-radius-lg);
+    width: 18rem;
+    height: 18rem;
+    border: 3px dashed var(--color-border);
+    border-radius: 3rem;
     background: rgba(255, 255, 255, 0.9);
 
     margin: auto;
@@ -131,6 +132,13 @@
     cursor: pointer;
     z-index: 99;
     transition: all var(--transition-speed);
+
+    /* --- Add these --- */
+ background-image: url('dropfile.png'); /* Path to your illustration */
+ background-repeat: no-repeat;         /* Don't tile the image */
+ background-position: center center;     /* Center the image */
+ background-size: contain; /* Or adjust like '80% auto', '150px 150px' etc. */
+ /* --- End Add --- */
   }
 
   .drag-drop-overlay.dragover {
@@ -1240,7 +1248,7 @@ animation: slideDownFadeIn 950ms cubic-bezier(0.1,0.1,0.1,1) forwards;
   <img src="mainLogo.svg" alt="Main Logo" class="page-logo" />
   <div id="uploadWrapper">
     <label for="fileInput" id="uploadLabel" class="btn btn--primary">Choose Lottie JSON</label>
-    <div class="drag-drop-overlay">Drop Your File</div>
+    <div class="drag-drop-overlay"></div>
     <input type="file" id="fileInput" accept=".json" />
   </div>
 
