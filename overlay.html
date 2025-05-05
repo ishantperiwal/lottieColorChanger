@@ -604,41 +604,44 @@ box-sizing: border-box;
     });
 
     mainBtn.onclick = () => {
-        if (!animation) return;
+    if (!animation) return;
 
-        // Ensure default listeners are active for main playback control
+    // 1. If a segment was playing/selected, stop and deselect it
+    if (selectedSegmentId !== null) {
+        const previousButton = document.querySelector(`.play-btn.paused[data-id='${selectedSegmentId}']`);
+        if (previousButton) {
+            previousButton.classList.remove('paused'); // Deactivate segment button
+        }
+        animation.pause(); // Pause whatever was playing
+        animation.resetSegments(true); // IMPORTANT: Reset segment state
+        selectedSegmentId = null; // Deselect the segment
+    }
+
+    // 2. Toggle main playback state
+    if (mainPlaying) { // If currently playing full animation -> pause it
+        animation.pause();
+        mainPlaying = false;
+    } else { // If currently paused/stopped -> play full animation
+        // 3. Ensure correct listeners are active for main playback
         animation.removeEventListener('enterFrame', updateSeekOnEnterFrame_Segment);
         animation.removeEventListener('enterFrame', updateSeekOnEnterFrame_Full); // Remove first to prevent duplicates
         animation.addEventListener('enterFrame', updateSeekOnEnterFrame_Full);
+
         fullSeek.removeEventListener('input', handleSeekInput); // Remove first to prevent duplicates
-        fullSeek.addEventListener('input', handleSeekInput);
+        fullSeek.addEventListener('input', handleSeekInput); // Re-enable manual seek
         fullSeek.removeEventListener('change', handleSeekChange); // Ensure tooltip hiding is active
         fullSeek.addEventListener('change', handleSeekChange);
 
+        // 4. Play the full animation
+        animation.loop = true; // Ensure looping for full playback
+        animation.resetSegments(true); // Reset again just before playing full
+        mainPlaying = true; // Set flag BEFORE playing
+        animation.goToAndPlay(0, true); // Play from start
+    }
 
-        if (selectedSegmentId !== null) { // If a segment was playing/paused
-            // Deactivate segment button visually
-            const previousButton = document.querySelector(`.play-btn.paused[data-id='${selectedSegmentId}']`);
-            if (previousButton) {
-                previousButton.classList.remove('paused');
-            }
-            selectedSegmentId = null; // Deselect segment
-            animation.resetSegments(true); // Reset player state
-            animation.pause(); // Ensure paused before potentially starting full anim
-        }
-
-        // Toggle main playback state
-        if (mainPlaying) { // If currently playing full animation -> pause it
-            animation.loop = false;
-            animation.pause();
-            mainPlaying = false;
-        } else { // If currently paused/stopped -> play full animation
-            animation.loop = true;
-            mainPlaying = true; // Set flag BEFORE playing
-            animation.goToAndPlay(0, true); // Play from start
-        }
-        mainBtn.classList.toggle('paused', mainPlaying);
-    };
+    // 5. Update main button UI
+    mainBtn.classList.toggle('paused', mainPlaying);
+};
 
 
     function initAnim(data) {
