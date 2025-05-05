@@ -230,6 +230,38 @@
 
      #applyBtn{border-radius: 999px; padding: 12px 20px; margin-right: 20px;}
 
+     #resetZoomBtn {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: none;
+  border-radius: 9999px;
+  padding: 6px 14px;
+  font-size: 16px;
+  cursor: pointer;
+  z-index: 1000;
+
+
+  /* fade setup */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+
+/* when zoomed: */
+#resetZoomBtn.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#resetZoomBtn:hover{
+  background: rgba(0, 0, 0, 0.9);
+}
+
   </style>
 </head>
 <body>
@@ -249,7 +281,9 @@
    </div>
 
    <div id="workspace">
+       <button id="resetZoomBtn">Reset Zoom</button>
        <div id="pan-zoom-container">
+
            <div id="previewWrapper">
 
                <div id="lottieContainer"></div>
@@ -335,11 +369,33 @@
     });
 
     // --- Panning Setup ---
-    let zoomLevel = 1;        // ← make sure this is here
+        // ← make sure this is here
+  setupPanning();
+
+
+    let zoomLevel = 1;
+  const resetZoomBtn = document.getElementById('resetZoomBtn');
+
+// Centralize your zoom‐applying logic into a function:
+function applyZoom() {
+  panZoomContainer.style.transform = `scale(${zoomLevel})`;
+  // show/hide the reset button
+
+    resetZoomBtn.classList.toggle('visible', zoomLevel !== 1);
+}
+
+
+// Reset button handler:
+resetZoomBtn.addEventListener('click', () => {
+  zoomLevel = 1;
+  applyZoom();
+});
+
+// finally, initialize
+applyZoom();
 
 
 
-    setupPanning();
     // Initialize panning listener
     workspace.addEventListener('wheel', function(e) {
   if (e.ctrlKey || e.metaKey) {
@@ -349,6 +405,8 @@
     zoomLevel = Math.min(Math.max(zoomLevel + zoomDelta, 0.2), 8);
     // apply the scale
     panZoomContainer.style.transform = `scale(${zoomLevel})`;
+
+    resetZoomBtn.classList.toggle('visible', zoomLevel !== 1);
     clampPanPosition();
   }
 });
@@ -702,8 +760,9 @@
             listeners: {
               move(event) {
                 const target = event.target;
-                const dx = event.dx / currentScaleFactor;
-                const dy = event.dy / currentScaleFactor;
+                const scaleZoom = currentScaleFactor * zoomLevel;
+                const dx = event.dx / scaleZoom;
+                const dy = event.dy / scaleZoom;
                 const x = (parseFloat(target.dataset.x) || 0) + dx;
                 const y = (parseFloat(target.dataset.y) || 0) + dy;
                 target.style.left = x + 'px';
@@ -732,8 +791,9 @@
                 const target = event.target;
                 let x = startX;
                 let y = startY;
-                let width = event.rect.width / currentScaleFactor;
-                let height = event.rect.height / currentScaleFactor;
+                const scaleZoom = currentScaleFactor * zoomLevel;
+                let width = event.rect.width / scaleZoom;
+                let height = event.rect.height / scaleZoom;
                 const dw = width - startWidth;
                 const dh = height - startHeight;
                 const isCorner = event.edges.left && event.edges.top || event.edges.right && event.edges.top || event.edges.left && event.edges.bottom || event.edges.right && event.edges.bottom;
