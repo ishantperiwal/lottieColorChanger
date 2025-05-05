@@ -730,6 +730,7 @@
               },
              move(event) {
                 const target = event.target;
+                // Use current position and size for calculations
                 let x = parseFloat(target.dataset.x) || 0;
                 let y = parseFloat(target.dataset.y) || 0;
                 let width = target.offsetWidth;
@@ -739,34 +740,77 @@
                 const dx = event.dx / currentScaleFactor;
                 const dy = event.dy / currentScaleFactor;
 
-                // Apply resize based on edges
-                if (event.edges.top) {
-                  height -= dy;
-                  y += dy;
-                } else if (event.edges.bottom) {
-                  height += dy;
+                // --- Calculate potential new dimensions and position based on edges ---
+                let potentialX = x;
+                let potentialY = y;
+                let potentialWidth = width;
+                let potentialHeight = height;
+
+                if (event.edges.top)    { potentialHeight -= dy; potentialY += dy; }
+                if (event.edges.bottom) { potentialHeight += dy; }
+                if (event.edges.left)   { potentialWidth -= dx; potentialX += dx; }
+                if (event.edges.right)  { potentialWidth += dx; }
+
+                // --- Apply Aspect Ratio / Centering Logic ---
+                const isCorner = (event.edges.left && event.edges.top)    ||
+                                 (event.edges.right && event.edges.top)   ||
+                                 (event.edges.left && event.edges.bottom) ||
+                                 (event.edges.right && event.edges.bottom);
+
+                if (event.ctrlKey) {
+                    // Symmetrical resize from center (using potential changes)
+                    wasSymmetricalCornerResize = false; // Not ratio-locked corner resize
+                    let actualDx = 0;
+                    let actualDy = 0;
+                    if (event.edges.left || event.edges.right) {
+                        actualDx = potentialWidth - width; // Total width change
+                        potentialWidth = width + actualDx * 2; // Double the change
+                        potentialX = startX - actualDx; // Adjust start position
+                    }
+                    if (event.edges.top || event.edges.bottom) {
+                         actualDy = potentialHeight - height; // Total height change
+                         potentialHeight = height + actualDy * 2; // Double the change
+                         potentialY = startY - actualDy; // Adjust start position
+                    }
+
+                } else {
+                    // Standard resize OR aspect-ratio corner resize
+                    if (isCorner) {
+                        wasSymmetricalCornerResize = true; // Mark for potential end correction
+                        const currentRatio = startRatio; // Use ratio from start
+
+                        // Calculate change from start dimensions
+                        const deltaW = potentialWidth - startWidth;
+                        const deltaH = potentialHeight - startHeight;
+
+                        // Determine dominant axis based on ratio
+                        if (Math.abs(deltaW) > Math.abs(deltaH * currentRatio)) {
+                             // Width change is dominant, adjust height
+                             potentialHeight = potentialWidth / currentRatio;
+                         } else {
+                             // Height change is dominant, adjust width
+                             potentialWidth = potentialHeight * currentRatio;
+                         }
+
+                        // Recalculate position adjustment for centered corner resize
+                        const finalDw = potentialWidth - startWidth;
+                        const finalDh = potentialHeight - startHeight;
+                        potentialX = startX - finalDw / 2;
+                        potentialY = startY - finalDh / 2;
+
+                    } else {
+                         wasSymmetricalCornerResize = false;
+                         // Simple edge resize - position already calculated by edge logic
+                    }
                 }
 
-                if (event.edges.left) {
-                  width -= dx;
-                  x += dx;
-                } else if (event.edges.right) {
-                  width += dx;
-                }
-
-                // TODO: Add aspect ratio logic back here if needed,
-                // potentially adjusting width/height based on the dominant delta
-                // and startRatio if shift key is not pressed or wasSymmetricalCornerResize is true.
-                // This simplified version removes the aspect ratio logic during drag for clarity.
-                // You might need to re-integrate it based on your exact requirements.
-
-                // Update styles and data attributes
-                target.style.width = width + 'px';
-                target.style.height = height + 'px';
-                target.style.left = x + 'px';
-                target.style.top = y + 'px';
-                target.dataset.x = x;
-                target.dataset.y = y;
+                // --- Apply final values ---
+                target.style.width = potentialWidth + 'px';
+                target.style.height = potentialHeight + 'px';
+                target.style.left = potentialX + 'px';
+                target.style.top = potentialY + 'px';
+                target.dataset.x = potentialX;
+                target.dataset.y = potentialY;
               },
               end(event) {
                 const target = event.target;
