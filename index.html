@@ -2259,15 +2259,15 @@ dragDropOverlay.addEventListener('drop', handleDrop);
 
                          let multiplier;
                          const deviceWidth = window.innerWidth;
-                         if (deviceWidth>1023){ multiplier = 0; }
-                         else {multiplier = 1024 - deviceWidth;}
+                         if (deviceWidth>1199){ multiplier = 0; }
+                         else {multiplier = 1200 - deviceWidth;}
 
 
                          // Calculate target position (top-center of previewArea)
                          // Target Top: previewArea's top relative to viewport
                         const targetTop = 112; // Using viewport coordinates directly
                          // Target Left: previewArea's horizontal center (viewport) minus half the window's width
-                         const targetLeft =previewRect.left + previewRect.width/2 - 92 - multiplier*0.18;
+                         const targetLeft =previewRect.left + previewRect.width/2 - 92 - multiplier*0.11;
 
 
 
@@ -3073,7 +3073,7 @@ function repositionWindowContainerX() {
                    - (winRect.width   / 2);
 
   // 3. Apply it directly (absolute positioning assumed in your CSS)
-  container.style.left = `${targetLeft-10}px`;
+  container.style.left = `${targetLeft-20}px`;
 }
 
 
