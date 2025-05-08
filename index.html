@@ -3310,10 +3310,10 @@ repositionWindowContainerX();
 document.addEventListener('keydown', (event) => {
 const isCtrlOrCmd = event.ctrlKey || event.metaKey;
 
-if (isCtrlOrCmd && event.key === 'z') {
+if (isCtrlOrCmd && (event.key === 'z' || event.key === 'Z')) {
   event.preventDefault(); // Prevent browser's default undo (e.g., in text fields)
   performUndo();
-} else if (isCtrlOrCmd && event.key === 'y') {
+} else if (isCtrlOrCmd && (event.key === 'y' || event.key === 'Y')) {
   event.preventDefault(); // Prevent browser's default redo
   performRedo();
 }
