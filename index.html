@@ -4312,7 +4312,7 @@ function performRedo() {
   } else if (changeDetails.type === 'TEXT_PROPERTY') {
     const textElement = detectedTextElements[changeDetails.textElementIndex];
     if (textElement) {
-        setValueByPath(lottieData, changeDetails.path, Array.isArray(changeDetails.newValue) ? [...changeDetails.newValue] : changeDetails.newValue);
+        setValueByPathTxt(lottieData, changeDetails.path, Array.isArray(changeDetails.newValue) ? [...changeDetails.newValue] : changeDetails.newValue);
         // Explicitly update textNodeRef for consistency:
         if (changeDetails.path.slice(-1)[0] === 't') {
              textElement.textNodeRef.t = changeDetails.newValue;
