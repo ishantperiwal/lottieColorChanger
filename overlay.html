@@ -596,6 +596,7 @@ background-color: #004085; /* Even darker */
   <script>
     // --- Global/Accessible Scope Variables ---
     let originalData = null;
+     let originalFilename = 'animation';
     const maxSegments = 10;
     const segmentColors = [
       '#87d8c0', // Mint Green
@@ -702,6 +703,7 @@ background-color: #004085; /* Even darker */
     window.addEventListener('message', (e) => {
       if (e.data.type === 'lottieData') {
         originalData = e.data.data;
+        originalFilename = e.data.filename || 'animation';
         console.log('loaded');
         try {
           if (!originalData || !originalData.v || !originalData.op || !originalData.fr) throw 'Invalid Lottie JSON';
@@ -713,6 +715,13 @@ background-color: #004085; /* Even darker */
         }
       }
     });
+
+    function sanitizeName(name) {
+        if (!name) return 'segment'; // Handle empty names
+        // Replace spaces and common problematic characters with underscores
+        // Allow letters, numbers, underscore, hyphen
+        return name.trim().replace(/\s+/g, '_').replace(/[^a-z0-9_-]/gi, '');
+    }
 
     mainBtn.onclick = () => {
     if (!animation) return;
@@ -1154,7 +1163,23 @@ background-color: #004085; /* Even darker */
             tm: s.start + compIp, // Add composition inPoint back for standard marker time
             dr: s.end - s.start
         }));
-        downloadJSON(mod, 'animation_with_markers.json');
+        let baseFilename = originalFilename.replace(/\.json$/i, '');
+
+          // 2. Get sanitized marker names
+          const markerNames = segments.map(s => sanitizeName(s.name)).join('_');
+
+          // 3. Combine parts
+          let finalFilename = `${baseFilename}`;
+          if (markerNames) { // Only add marker names if there are segments
+              finalFilename += `_${markerNames}`;
+          }
+          finalFilename += '.json'; // Add extension back
+          // --- END: Generate New Filename ---
+
+
+          // --- Use the new filename in the download function ---
+          // downloadJSON(mod, 'animation_with_markers.json'); // Old way
+          downloadJSON(mod, finalFilename); // New way
     };
 
     function handleDownload(e) {
@@ -1178,9 +1203,16 @@ background-color: #004085; /* Even darker */
         // Optional: Add a single marker relative to the new timeline
         mod.markers = [{ cm: seg.name, tm: 0, dr: seg.end - seg.start }];
 
+
+        let baseFilename = originalFilename.replace(/\.json$/i, '');
+
+       // 2. Construct the filename using the new format
+
+
         // Generate filename, sanitize segment name
         const safeName = seg.name.replace(/[^a-z0-9_-]/gi, '_').toLowerCase();
-        downloadJSON(mod, `trimmed_${safeName}_${seg.start}_${seg.end}.json`);
+
+        downloadJSON(mod, `${baseFilename}_${safeName}_${seg.start}_${seg.end}.json`);
     }
 
      // Recursive function to adjust keyframe times
