@@ -17,10 +17,10 @@
     .container { display: flex; flex-direction: column; gap: 20px; }
 
     /* Animation preview + main play */
-    #preview-wrapper { position: relative; background: #f5f5f5; border-radius: 32px;   background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
-                        linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
-                        linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
-                        linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+    #preview-wrapper { position: relative; background: #f5f5f5; border-radius: 32px;   background-image: linear-gradient(45deg, #e0e0e0 25%, transparent 25%),
+                        linear-gradient(-45deg, #e0e0e0 25%, transparent 25%),
+                        linear-gradient(45deg, transparent 75%, #e0e0e0 75%),
+                        linear-gradient(-45deg, transparent 75%, #e0e0e0 75%);
       background-size: 20px 20px;
       background-position: 0 0, 0 10px, 10px -10px, -10px 0px;}
     #animation-container { width: 100%; height: 400px;  border-radius: 8px; overflow: hidden; margin-bottom: 3rem;}
@@ -232,23 +232,47 @@
 /* WebKit pill‐style thumb */
 .range-input::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 12px;
+  width: 14px; /* Slightly wider */
   height: 24px;
-  margin-top: 0px;             /* (24px - trackHeight 6px)/2 */
-  border-radius: 6px;
-  background: #007bff;          /* or seg.color */
+  margin-top: 0px; /* Adjust as needed based on track height */
+  border-radius: 7px; /* More rounded pill */
+  background: #007bff;
+  border: 2px solid #ffffff; /* Slightly darker border */
   cursor: pointer;
   z-index: 3;
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease; /* Add transitions */
+
+}
+
+.range-input:hover::-webkit-slider-thumb {
+  background-color: #0056b3; /* Darken on hover */
+
+}
+
+.range-input:active::-webkit-slider-thumb {
+  transform: scale(1.1); /* Slightly enlarge */
+  background-color: #004085; /* Even darker */
 }
 
 /* Firefox pill‐style thumb */
 .range-input::-moz-range-thumb {
-  width: 12px;
+  width: 14px; /* Slightly wider */
   height: 24px;
-  border-radius: 6px;
+  border-radius: 7px; /* More rounded pill */
   background: #007bff;
+  border: 2px solid #ffffff; /* Slightly darker border */
   cursor: pointer;
-  border: none;
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease; /* Add transitions */
+
+}
+
+.range-input:hover::-moz-range-thumb {
+  background-color: #0056b3; /* Darken on hover */
+
+}
+.range-input:active::-moz-range-thumb {
+  transform: scale(1.1); /* Slightly enlarge */
+  background-color: #004085; /* Even darker */
 }
 
 /* hide the default track */
@@ -398,12 +422,54 @@ box-sizing: border-box;
 
 /* 2) vertically center a 20px thumb over an 8px bar */
 #fullSeek::-webkit-slider-thumb {
-  margin-top: -6px !important;         /* (20px thumb – 8px bar)/2 = 6px */
-}
-#fullSeek::-moz-range-thumb {
-  transform: translateY(-6px) !important;
+  -webkit-appearance: none;
+  width: 20px; /* Slightly larger */
+  height: 20px;
+  margin-top: -5px; /* Re-center based on new size and 6px bar */
+  border-radius: 50%; /* Keep circular */
+  background: #007bff;
+  border: 2px solid #ffffff; /* White border for contrast */
+  cursor: pointer;
+  z-index: 3;
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease; /* Add transitions */
 
 }
+#fullSeek::-moz-range-thumb {
+  width: 20px; /* Slightly larger */
+  height: 20px;
+  border-radius: 50%; /* Keep circular */
+  background: #007bff;
+  border: 2px solid #ffffff; /* White border for contrast */
+  cursor: pointer;
+  transform: translateY(-5px); /* Re-center based on new size and 6px bar */
+  z-index: 3;
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease; /* Add transitions */
+
+}
+
+/* Hover effect for main seekbar thumb */
+#fullSeek:hover::-webkit-slider-thumb {
+background-color: #0056b3; /* Darken */
+
+}
+#fullSeek:hover::-moz-range-thumb {
+background-color: #0056b3; /* Darken */
+
+}
+
+/* Active/Dragging effect for main seekbar thumb */
+#fullSeek:active::-webkit-slider-thumb {
+transform: scale(1.15); /* Enlarge more */
+background-color: #004085; /* Even darker */
+}
+#fullSeek:active::-moz-range-thumb {
+/* Need to combine transforms */
+transform: translateY(-6px) scale(1.15); /* Enlarge more */
+background-color: #004085; /* Even darker */
+}
+
+
+
   /* play pause dynamic */
 
 .play-btn, #mainPlay {
@@ -447,6 +513,40 @@ box-sizing: border-box;
 
 }
 
+#addSegment {
+  font-family: Inter;
+  font-weight: bold;
+  background-color: transparent; /* No background fill */
+  color: #888888; /* Greyish text color */
+  border: 2px dashed #cccccc; /* Greyish dotted border */
+  padding: 10px 16px; /* Adjust padding for comfortable clicking */
+  border-radius: 10px; /* Slightly rounded corners */
+  cursor: pointer;
+  font-weight: 500; /* Slightly bolder text */
+  text-align: center; /* Center the text */
+  width: 60%; /* Make the button take full available width */
+  margin: auto;
+   /* Add some space above the button */
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+  /* Smooth transitions for hover effects */
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+/* Hover effect (only when the button is NOT disabled) */
+#addSegment:hover:not(:disabled) {
+  background-color: rgba(0, 123, 255, 0.05); /* Very light blueish background tint */
+  color: #007bff; /* Blueish text color */
+  border-color: #007bff; /* Blueish border color */
+}
+
+/* Style for when the button is disabled */
+#addSegment:disabled {
+  background-color: transparent; /* Keep background transparent */
+  color: #bbbbbb; /* Lighter grey text when disabled */
+  border-color: #dddddd; /* Lighter grey border when disabled */
+  cursor: not-allowed; /* Indicate it's not clickable */
+}
+
   </style>
 </head>
 <body>
@@ -483,7 +583,7 @@ box-sizing: border-box;
 
 
     <div class="controls">
-        <button id="addSegment" disabled>Add Segment</button>
+        <button id="addSegment" disabled> Add a Segment</button>
       <div id="segmentsContainer"></div>
       <div class="button-group">
 
@@ -497,7 +597,18 @@ box-sizing: border-box;
     // --- Global/Accessible Scope Variables ---
     let originalData = null;
     const maxSegments = 10;
-    const segmentColors = ['#e6194b','#3cb44b','#ffe119','#4363d8','#f58231','#911eb4','#46f0f0','#f032e6','#bcf60c','#fabebe'];
+    const segmentColors = [
+      '#87d8c0', // Mint Green
+      '#c5e0a5', // Pastel Olive
+      '#ffb79a', // Soft Peach
+      '#ff938a', // Muted Salmon
+      '#ff707e', // Dusty Rose
+      '#b890d9', // Medium Lavender
+      '#9cdcdc', // Aqua Blue
+      '#e9d8a6', // Sandy Beige
+      '#e8a7b1', // Deeper Rose
+      '#95c5c5'  // Teal Blue
+    ];
     let animation, totalFrames;
     const segments = [];
     let selectedSegmentId = null; // Keep track of the playing segment's ID
