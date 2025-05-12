@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lottie Asset Replacer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        #assetListContainer::-webkit-scrollbar {
+            display: none;
+        }
+        #assetListContainer {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .asset-item-min-height {
+            min-height: 110px;
+        }
+        .preview-image-container {
+            cursor: pointer;
+            border: 2px dotted #cbd5e1; /* gray-300 */
+            transition: border-color 0.2s ease, background-color 0.2s ease, border-style 0.2s ease;
+            padding: 4px;
+            border-radius: 0.375rem; /* rounded-md */
+            position: relative;
+            display: inline-block;
+            background-color: #f8fafc; /* slate-50 */
+        }
+        .preview-image-container:hover {
+            border-color: #94a3b8; /* gray-400 */
+            background-color: #f1f5f9; /* slate-100 */
+        }
+        .preview-image-container.drag-over {
+            border-color: #2563eb; /* blue-600 */
+            border-style: solid;
+            background-color: rgba(59, 130, 246, 0.15);
+        }
+        .preview-image-max-height {
+            max-height: 80px;
+            display: block;
+        }
+        .asset-info-text {
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            line-height: 1.4;
+            font-size: 0.875rem; /* text-sm */
+        }
+        .hidden-file-input {
+            display: none;
+        }
+        .asset-id-pill {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 2px 6px;
+            font-size: 0.65rem;
+            border-radius: 0.75rem; /* rounded-full */
+            z-index: 10;
+            line-height: 1;
+            font-weight: 500;
+        }
+        .asset-controls-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem; /* 8px */
+            margin-top: 0.5rem; /* 8px */
+        }
+        .icon-button {
+            background-color: #f3f4f6; /* gray-100 */
+            border: 1px solid #d1d5db; /* gray-300 */
+            color: #6b7280; /* gray-500 */
+            width: 2rem; /* 32px */
+            height: 2rem; /* 32px */
+            border-radius: 0.375rem; /* rounded-md */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+        .icon-button:hover {
+            background-color: #e5e7eb; /* gray-200 */
+            border-color: #9ca3af; /* gray-400 */
+        }
+        .icon-button.active {
+            background-color: #bfdbfe; /* blue-200 */
+            color: #2563eb; /* blue-600 */
+            border-color: #3b82f6; /* blue-500 */
+        }
+        .icon-button svg {
+            width: 1rem; /* 16px */
+            height: 1rem; /* 16px */
+        }
+
+        .lottie-preview-container {
+            position: relative;
+        }
+
+        #downloadLottie { /* Main download button */
+            position: absolute;
+            bottom: 1rem; /* 16px */
+            right: 1rem;  /* 16px */
+            width: 2.5rem; /* 40px */
+            height: 2.5rem; /* 40px */
+            background-color: #10b981; /* emerald-500 */
+            color: white;
+            border-radius: 50%;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            z-index: 20;
+        }
+        #downloadLottie:hover:not(:disabled) {
+            background-color: #059669; /* emerald-600 */
+            transform: scale(1.05);
+        }
+        #downloadLottie:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+        #downloadLottie:disabled {
+            background-color: #9ca3af; /* gray-400 */
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        #downloadLottie svg {
+            width: 1.25rem; /* 20px */
+            height: 1.25rem; /* 20px */
+        }
+
+        #assetListOuterContainer {
+            position: relative;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 0.25rem 0.75rem; /* py-1 px-3 */
+            border-radius: 9999px; /* rounded-full */
+            font-size: 0.75rem; /* text-xs */
+            cursor: pointer;
+            z-index: 15;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none;
+        }
+        .scroll-indicator.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #scrollUpIndicator {
+            top: 0.5rem; /* 8px */
+        }
+        #scrollDownIndicator {
+            bottom: 0.5rem; /* 8px */
+        }
+
+        #assetListContainer {
+            padding: 0 !important;
+            border: none !important;
+            background-color: transparent !important;
+        }
+        #lottieFileWrapper.hidden-if-data-received {
+            display: none !important;
+        }
+
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-gray-100 to-gray-200 text-gray-800 flex flex-col items-center p-4 selection:bg-sky-500 selection:text-white" style="height: 100vh;">
+
+    <div class="rounded-xl p-6 md:p-8 w-full max-w-4xl" style="padding-top: 83px;">
+        <div id="lottieFileWrapper" class="mb-6">
+            <label for="lottieFile" class="block mb-2 text-sm font-medium text-sky-700">Upload Lottie JSON File</label>
+            <input type="file" id="lottieFile" accept=".json" class="block w-full text-sm text-gray-700
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-lg file:border-0
+                file:text-sm file:font-semibold
+                file:bg-sky-500 file:text-white
+                hover:file:bg-sky-600
+                cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+        </div>
+
+        <div class="lottie-preview-container mb-6">
+            <div id="lottiePreview" class="w-full h-64 md:h-80 lg:h-96 bg-gray-200 rounded flex items-center justify-center text-gray-500 text-sm border border-gray-300">
+                Upload a Lottie file or wait for data from parent.
+            </div>
+            <button id="downloadLottie" title="Download Modified Lottie" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z" />
+                    <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
+                </svg>
+            </button>
+        </div>
+
+        <div id="assetListOuterContainer">
+            <div id="assetListContainer" class="max-h-200 overflow-y-auto">
+                <div id="assetList" class="grid grid-cols-1 sm:grid-cols-2 gap-4" >
+                    </div>
+                <p class="text-gray-500 text-sm hidden text-center py-4" id="noAssetsMessage">No image assets found or Lottie file not loaded.</p>
+            </div>
+            <div id="scrollUpIndicator" class="scroll-indicator">Scroll Up &uarr;</div>
+            <div id="scrollDownIndicator" class="scroll-indicator">Scroll Down &darr;</div>
+        </div>
+    </div>
+
+    <script>
+        let animationInstance = null;
+        let lottieData = null;
+        let lottieFileName = 'animation.json';
+
+        const lottieFileWrapper = document.getElementById('lottieFileWrapper');
+        const lottieFileInput = document.getElementById('lottieFile');
+        const lottiePreview = document.getElementById('lottiePreview');
+        const assetListContainer = document.getElementById('assetListContainer');
+        const assetList = document.getElementById('assetList');
+        const noAssetsMessage = document.getElementById('noAssetsMessage');
+        const downloadLottieButton = document.getElementById('downloadLottie');
+        const scrollUpIndicator = document.getElementById('scrollUpIndicator');
+        const scrollDownIndicator = document.getElementById('scrollDownIndicator');
+
+
+        const aspectRatioIconSVG = `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+            </svg>`;
+        const downloadAssetIconSVG = `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>`;
+
+        function processLottieData(data, fileNameFromMessage) {
+            try {
+                lottieData = data;
+                if (fileNameFromMessage) {
+                    lottieFileName = fileNameFromMessage;
+                } else if (lottieFileInput.files[0]) {
+                    lottieFileName = lottieFileInput.files[0].name;
+                }
+
+                if (!lottieData.assets) {
+                    lottieData.assets = [];
+                }
+                displayLottiePreview();
+                listAssets();
+                downloadLottieButton.disabled = false;
+            } catch (error) {
+                console.error('Error processing Lottie data:', error);
+                lottiePreview.innerHTML = '<p class="text-red-500">Error: Could not process Lottie data.</p>';
+                assetList.innerHTML = '';
+                noAssetsMessage.classList.remove('hidden');
+                noAssetsMessage.textContent = 'Error loading assets.';
+                downloadLottieButton.disabled = true;
+                updateScrollIndicators();
+            }
+        }
+
+
+        lottieFileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file && file.type === 'application/json') {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const parsedData = JSON.parse(e.target.result);
+                        processLottieData(parsedData, file.name);
+                    } catch (parseError) {
+                        console.error('Error parsing Lottie JSON from file:', parseError);
+                        lottiePreview.innerHTML = '<p class="text-red-500">Error: Could not parse Lottie file. Make sure it is a valid JSON.</p>';
+                        assetList.innerHTML = '';
+                        noAssetsMessage.classList.remove('hidden');
+                        noAssetsMessage.textContent = 'Error loading assets from file.';
+                        downloadLottieButton.disabled = true;
+                        updateScrollIndicators();
+                    }
+                };
+                reader.readAsText(file);
+            } else if (file) {
+                alert('Please select a valid JSON file.');
+            }
+        });
+
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'lottieDataAssetTool' && event.data.lottieData) {
+                console.log('Lottie data received via postMessage:', event.data.filename);
+                processLottieData(event.data.lottieData, event.data.filename);
+                lottieFileWrapper.classList.add('hidden-if-data-received');
+            }
+        });
+
+
+        function displayLottiePreview() {
+            if (animationInstance) {
+                animationInstance.destroy();
+                animationInstance = null;
+            }
+            if (lottieData) {
+                lottiePreview.innerHTML = '';
+                animationInstance = lottie.loadAnimation({
+                    container: lottiePreview,
+                    renderer: 'svg',
+                    loop: true,
+                    autoplay: true,
+                    animationData: JSON.parse(JSON.stringify(lottieData))
+                });
+            }
+        }
+
+        function getImageTypeFromBase64(base64String) {
+            const match = base64String.match(/^data:image\/([^;]+);base64,/);
+            return match && match[1] ? match[1].toUpperCase() : 'UNKNOWN';
+        }
+
+        function getApproximateSizeFromBase64(base64String) {
+            const base64Data = base64String.substring(base64String.indexOf(',') + 1);
+            const padding = (base64Data.endsWith('==')) ? 2 : (base64Data.endsWith('=')) ? 1 : 0;
+            const base64Length = base64Data.length;
+            if (base64Length === 0) return "0 KB";
+            const approxOriginalBytes = (base64Length * 3 / 4) - padding;
+            const approxKBytes = approxOriginalBytes / 1024;
+            return approxKBytes < 1 ? `${approxKBytes.toFixed(2)} KB` : `${Math.round(approxKBytes)} KB`;
+        }
+
+        function listAssets() {
+            assetList.innerHTML = '';
+            let imageAssetsFound = false;
+
+            if (lottieData && lottieData.assets) {
+                lottieData.assets.forEach((asset, index) => {
+                    if (asset.p && typeof asset.p === 'string' && asset.p.startsWith('data:image/')) {
+                        imageAssetsFound = true;
+
+                        const assetItem = document.createElement('div');
+                        // Updated padding: py-3 (top/bottom 0.75rem), pr-3 (right 0.75rem), pl-5 (left 1.25rem)
+                        assetItem.className = 'bg-white py-3 pr-3 pl-5 rounded-xl border border-gray-200 flex flex-col sm:flex-row items-center gap-3 asset-item-min-height';
+                        assetItem.dataset.assetIndex = index;
+                        assetItem.dataset.lastUploadedRawBase64 = asset.p;
+
+                        const assetDetailsContainer = document.createElement('div');
+                        assetDetailsContainer.className = 'flex-grow w-full text-center sm:text-left';
+
+                        const assetInfoDisplay = document.createElement('p');
+                        assetInfoDisplay.className = 'text-gray-600 mt-1 font-medium asset-info-text';
+
+                        const imageType = getImageTypeFromBase64(asset.p);
+                        const imageSize = getApproximateSizeFromBase64(asset.p);
+                        let dimensionsText = 'Dimensions N/A';
+                        if (asset.w && asset.h) {
+                            dimensionsText = `${asset.w} x ${asset.h} px`;
+                        }
+                        assetInfoDisplay.innerHTML = `
+                            <span class="font-semibold">${imageType}</span> (${imageSize})<br/>
+                            ${dimensionsText}
+                        `;
+                        assetDetailsContainer.appendChild(assetInfoDisplay);
+
+                        const controlsButtonContainer = document.createElement('div');
+                        controlsButtonContainer.className = 'asset-controls-container justify-center sm:justify-start';
+
+                        const aspectRatioButton = document.createElement('button');
+                        aspectRatioButton.className = 'icon-button';
+                        aspectRatioButton.title = 'Toggle Fit/Stretch (Fit when active)';
+                        aspectRatioButton.innerHTML = aspectRatioIconSVG;
+                        let isFitModeActive = false;
+
+                        aspectRatioButton.addEventListener('click', () => {
+                            isFitModeActive = !isFitModeActive;
+                            aspectRatioButton.classList.toggle('active', isFitModeActive);
+
+                            const currentAssetItem = aspectRatioButton.closest('.asset-item-min-height');
+                            const assetIdx = parseInt(currentAssetItem.dataset.assetIndex);
+                            const lastUploadedRawBase64 = currentAssetItem.dataset.lastUploadedRawBase64;
+
+                            if (lastUploadedRawBase64 && lottieData && lottieData.assets && lottieData.assets[assetIdx]) {
+                                const assetImageElementInList = currentAssetItem.querySelector('.preview-image-container img');
+                                if (assetImageElementInList) {
+                                     processAndApplyImage(assetIdx, lastUploadedRawBase64, assetImageElementInList, !isFitModeActive);
+                                }
+                            }
+                        });
+                        controlsButtonContainer.appendChild(aspectRatioButton);
+
+                        const downloadAssetButton = document.createElement('button');
+                        downloadAssetButton.className = 'icon-button';
+                        downloadAssetButton.title = 'Download this asset';
+                        downloadAssetButton.innerHTML = downloadAssetIconSVG;
+                        downloadAssetButton.addEventListener('click', () => {
+                            const currentAssetItem = downloadAssetButton.closest('.asset-item-min-height');
+                            const rawBase64 = currentAssetItem.dataset.lastUploadedRawBase64;
+                            const assetIdForName = lottieData.assets[index].id || `asset_${index}`;
+                            const assetTypeForName = getImageTypeFromBase64(rawBase64).toLowerCase() || 'png';
+
+                            if (rawBase64) {
+                                const link = document.createElement('a');
+                                link.href = rawBase64;
+                                link.download = `${assetIdForName}.${assetTypeForName}`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                            } else {
+                                alert('No asset data to download.');
+                            }
+                        });
+                        controlsButtonContainer.appendChild(downloadAssetButton);
+                        assetDetailsContainer.appendChild(controlsButtonContainer);
+
+                        const imagePreviewContainer = document.createElement('div');
+                        imagePreviewContainer.className = 'preview-image-container flex-shrink-0 text-center sm:text-right';
+                        imagePreviewContainer.title = 'Click or Drag/Drop to replace asset';
+
+                        const assetImage = document.createElement('img');
+                        assetImage.src = asset.p;
+                        assetImage.alt = `Asset ${asset.id || index}`;
+                        assetImage.className = 'border border-gray-300 rounded preview-image-max-height object-contain mx-auto sm:ml-auto sm:mr-0';
+
+                        const idPill = document.createElement('div');
+                        idPill.className = 'asset-id-pill';
+                        let displayName = asset.id || (asset.p && asset.p.startsWith('img_') ? asset.p : `Asset ${index + 1}`);
+                        if (typeof displayName === 'string' && displayName.startsWith('data:image')) {
+                            displayName = `Asset ${index + 1}`;
+                        }
+                        idPill.textContent = displayName;
+                        imagePreviewContainer.appendChild(idPill);
+                        imagePreviewContainer.appendChild(assetImage);
+
+                        const fileInput = document.createElement('input');
+                        fileInput.type = 'file';
+                        fileInput.accept = 'image/png, image/jpeg, image/gif, image/webp, image/svg+xml';
+                        fileInput.className = 'hidden-file-input';
+                        fileInput.id = `fileInput-${index}`;
+
+                        imagePreviewContainer.addEventListener('click', () => fileInput.click());
+                        imagePreviewContainer.addEventListener('dragover', (e) => {
+                            e.preventDefault(); e.stopPropagation();
+                            imagePreviewContainer.classList.add('drag-over');
+                        });
+                        imagePreviewContainer.addEventListener('dragleave', (e) => {
+                            e.preventDefault(); e.stopPropagation();
+                            imagePreviewContainer.classList.remove('drag-over');
+                        });
+                        imagePreviewContainer.addEventListener('drop', (e) => {
+                            e.preventDefault(); e.stopPropagation();
+                            imagePreviewContainer.classList.remove('drag-over');
+                            const droppedFiles = e.dataTransfer.files;
+                            if (droppedFiles.length > 0) {
+                                const newFile = droppedFiles[0];
+                                const currentAspectRatioButton = assetItem.querySelector('.icon-button[title*="Toggle Fit/Stretch"]');
+                                const shouldStretchOnDrop = !currentAspectRatioButton.classList.contains('active');
+                                handleAssetReplacement(index, newFile, assetImage, shouldStretchOnDrop);
+                            }
+                        });
+
+                        fileInput.addEventListener('change', (e) => {
+                            const newFile = e.target.files[0];
+                            if (newFile) {
+                                const currentAspectRatioButton = assetItem.querySelector('.icon-button[title*="Toggle Fit/Stretch"]');
+                                const shouldStretchOnChange = !currentAspectRatioButton.classList.contains('active');
+                                handleAssetReplacement(index, newFile, assetImage, shouldStretchOnChange);
+                            }
+                        });
+
+                        assetItem.appendChild(assetDetailsContainer);
+                        assetItem.appendChild(imagePreviewContainer);
+                        assetItem.appendChild(fileInput);
+                        assetList.appendChild(assetItem);
+                    }
+                });
+            }
+
+            if (imageAssetsFound) {
+                noAssetsMessage.classList.add('hidden');
+            } else {
+                noAssetsMessage.classList.remove('hidden');
+                noAssetsMessage.textContent = 'No replaceable image assets found in this Lottie file.';
+            }
+            updateScrollIndicators();
+        }
+
+        function handleAssetReplacement(assetIndex, newFile, assetImageElementInList, shouldStretch) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const newImageRawBase64 = e.target.result;
+                const assetItemElement = document.querySelector(`.asset-item-min-height[data-asset-index='${assetIndex}']`);
+                if (assetItemElement) {
+                    assetItemElement.dataset.lastUploadedRawBase64 = newImageRawBase64;
+                }
+                processAndApplyImage(assetIndex, newImageRawBase64, assetImageElementInList, shouldStretch);
+            };
+            reader.onerror = (error) => {
+                console.error('Error reading new asset file:', error);
+                alert('Error processing the new image file.');
+            };
+            reader.readAsDataURL(newFile);
+        }
+
+        function processAndApplyImage(assetIndex, imageBase64ToProcess, assetImageElementInList, shouldStretch) {
+            const originalAsset = lottieData.assets[assetIndex];
+            if (!originalAsset) {
+                console.error(`Original asset at index ${assetIndex} not found.`);
+                return;
+            }
+
+            const originalW = originalAsset.w;
+            const originalH = originalAsset.h;
+
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                let finalBase64 = imageBase64ToProcess;
+
+                if (originalW && originalH) {
+                    if (!shouldStretch) {
+                        const hRatio = originalW / img.width;
+                        const vRatio = originalH / img.height;
+                        const ratio = Math.min(hRatio, vRatio);
+                        canvas.width = img.width * ratio;
+                        canvas.height = img.height * ratio;
+                        ctx.clearRect(0,0,canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    } else {
+                        canvas.width = originalW;
+                        canvas.height = originalH;
+                        ctx.clearRect(0,0,canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, originalW, originalH);
+                    }
+                    try {
+                        const imageTypeMatch = imageBase64ToProcess.match(/^data:(image\/[^;]+);base64,/);
+                        const imageMimeType = imageTypeMatch && imageTypeMatch[1] ? imageTypeMatch[1] : 'image/png';
+                        finalBase64 = canvas.toDataURL(imageMimeType);
+                    } catch (cvError) {
+                        console.error("Canvas toDataURL error:", cvError, "Using raw base64 instead.");
+                    }
+                } else {
+                    console.warn(`Asset ${assetIndex} has no original w/h defined in Lottie data. Using uploaded image as is for Lottie asset.p.`);
+                }
+
+                lottieData.assets[assetIndex].p = finalBase64;
+                lottieData.assets[assetIndex].w = originalW || img.width;
+                lottieData.assets[assetIndex].h = originalH || img.height;
+
+                displayLottiePreview();
+                console.log(`Asset at index ${assetIndex} processed. Stretch mode: ${shouldStretch}`);
+
+                if (assetImageElementInList) {
+                    assetImageElementInList.src = imageBase64ToProcess;
+                }
+            };
+            img.onerror = () => {
+                 console.error('Could not load image from base64 to process for resizing:', imageBase64ToProcess.substring(0,50) + "...");
+                 lottieData.assets[assetIndex].p = imageBase64ToProcess;
+                 lottieData.assets[assetIndex].w = originalW;
+                 lottieData.assets[assetIndex].h = originalH;
+                 displayLottiePreview();
+                 if (assetImageElementInList) assetImageElementInList.src = imageBase64ToProcess;
+            };
+            img.src = imageBase64ToProcess;
+        }
+
+        downloadLottieButton.addEventListener('click', () => {
+            if (!lottieData) {
+                alert('No Lottie data to download.');
+                return;
+            }
+            try {
+                const baseName = lottieFileName.replace(/\.json$/i, '');
+                const downloadFilenameToUse = `${baseName}_modified.json`;
+
+                const jsonString = JSON.stringify(lottieData, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = downloadFilenameToUse;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error('Error preparing Lottie JSON for download:', error);
+                alert('Could not prepare the Lottie file for download.');
+            }
+        });
+
+        function updateScrollIndicators() {
+            const el = assetListContainer;
+            const scrollThreshold = 10;
+
+            if (el.scrollHeight > el.clientHeight) {
+                if (el.scrollTop + el.clientHeight < el.scrollHeight - scrollThreshold) {
+                    scrollDownIndicator.classList.add('visible');
+                } else {
+                    scrollDownIndicator.classList.remove('visible');
+                }
+                if (el.scrollTop > scrollThreshold) {
+                    scrollUpIndicator.classList.add('visible');
+                } else {
+                    scrollUpIndicator.classList.remove('visible');
+                }
+            } else {
+                scrollUpIndicator.classList.remove('visible');
+                scrollDownIndicator.classList.remove('visible');
+            }
+        }
+
+        assetListContainer.addEventListener('scroll', updateScrollIndicators);
+
+        scrollUpIndicator.addEventListener('click', () => {
+            assetListContainer.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        scrollDownIndicator.addEventListener('click', () => {
+            assetListContainer.scrollTo({ top: assetListContainer.scrollHeight, behavior: 'smooth' });
+        });
+
+        updateScrollIndicators();
+
+    </script>
+</body>
+</html>
