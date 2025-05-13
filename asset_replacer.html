@@ -7,97 +7,126 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        #assetListContainer::-webkit-scrollbar {
-            display: none;
-        }
-        #assetListContainer {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        .asset-item-min-height {
-            min-height: 110px;
-        }
-        .preview-image-container {
-            cursor: pointer;
-            border: 2px dotted #cbd5e1; /* gray-300 */
-            transition: border-color 0.2s ease, background-color 0.2s ease, border-style 0.2s ease;
-            padding: 4px;
-            border-radius: 0.375rem; /* rounded-md */
-            position: relative;
-            display: inline-block;
-            background-color: #f8fafc; /* slate-50 */
-        }
-        .preview-image-container:hover {
-            border-color: #94a3b8; /* gray-400 */
-            background-color: #f1f5f9; /* slate-100 */
-        }
-        .preview-image-container.drag-over {
-            border-color: #2563eb; /* blue-600 */
-            border-style: solid;
-            background-color: rgba(59, 130, 246, 0.15);
-        }
-        .preview-image-max-height {
-            max-height: 80px;
-            display: block;
-        }
-        .asset-info-text {
-            white-space: normal;
-            overflow: visible;
-            text-overflow: clip;
-            line-height: 1.4;
-            font-size: 0.875rem; /* text-sm */
-        }
-        .hidden-file-input {
-            display: none;
-        }
-        .asset-id-pill {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            background-color: rgba(0, 0, 0, 0.6);
-            color: white;
-            padding: 2px 6px;
-            font-size: 0.65rem;
-            border-radius: 0.75rem; /* rounded-full */
-            z-index: 10;
-            line-height: 1;
-            font-weight: 500;
-        }
-        .asset-controls-container {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem; /* 8px */
-            margin-top: 0.5rem; /* 8px */
-        }
-        .icon-button {
-            background-color: #f3f4f6; /* gray-100 */
-            border: 1px solid #d1d5db; /* gray-300 */
-            color: #6b7280; /* gray-500 */
-            width: 2rem; /* 32px */
-            height: 2rem; /* 32px */
-            border-radius: 0.375rem; /* rounded-md */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-        }
-        .icon-button:hover {
-            background-color: #e5e7eb; /* gray-200 */
-            border-color: #9ca3af; /* gray-400 */
-        }
-        .icon-button.active {
-            background-color: #bfdbfe; /* blue-200 */
-            color: #2563eb; /* blue-600 */
-            border-color: #3b82f6; /* blue-500 */
-        }
-        .icon-button svg {
-            width: 1rem; /* 16px */
-            height: 1rem; /* 16px */
-        }
+    body {
+       font-family: 'Inter', sans-serif;
+   }
+   #assetListContainer::-webkit-scrollbar {
+       display: none;
+   }
+   #assetListContainer {
+       -ms-overflow-style: none;
+       scrollbar-width: none;
+   }
+   .asset-item-min-height {
+       min-height: 110px; /* Or adjust as needed based on new content */
+   }
+
+   /* MODIFIED from previous request for fixed size & centering */
+   .preview-image-container {
+       cursor: pointer;
+       border: 2px dotted #cbd5e1; /* gray-300 */
+       transition: border-color 0.2s ease, background-color 0.2s ease, border-style 0.2s ease;
+       /* padding: 4px; Consider removing or adjusting if 100x100 is total outer size */
+       border-radius: 0.375rem; /* rounded-md */
+       position: relative;
+       width: 100px; /* Fixed width for the preview box */
+       height: 100px; /* Fixed height for the preview box */
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       background-color: #f8fafc; /* slate-50 */
+       overflow: hidden; /* Ensures pill doesn't overflow if too long for small boxes */
+   }
+
+   .preview-image-container:hover {
+       border-color: #94a3b8; /* gray-400 */
+       background-color: #f1f5f9; /* slate-100 */
+   }
+
+   .preview-image-container.drag-over {
+       border-color: #2563eb; /* blue-600 */
+       border-style: solid;
+       background-color: rgba(59, 130, 246, 0.15);
+   }
+
+   /* MODIFIED from previous request for image scaling within fixed container */
+   .preview-image-max-height { /* This class is on the img tag */
+       max-width: 100%;
+       max-height: 100%;
+       object-fit: contain; /* Crucial for fitting and maintaining aspect ratio */
+       display: block;
+       /* border border-gray-300 rounded mx-auto sm:ml-auto sm:mr-0 - these might be redundant or handled by container */
+   }
+
+   .asset-info-text {
+       white-space: normal;
+       overflow: visible;
+       text-overflow: clip;
+       line-height: 1.4; /* Adjust if necessary for new two-line layout */
+       font-size: 0.875rem; /* text-sm for the second line (size/dims) */
+   }
+   .asset-info-text .asset-name { /* Class for the asset name span */
+       font-weight: 600; /* semibold */
+       font-size: 1rem; /* text-base */
+       display: block;
+       margin-bottom: 0.125rem; /* mb-0.5 */
+       word-break: break-all; /* To prevent long names from breaking layout */
+   }
+    .asset-info-text .asset-details { /* Class for the size/dims span */
+       font-size: 0.75rem; /* text-xs */
+       color: #4b5563; /* gray-600 */
+   }
+
+   .hidden-file-input {
+       display: none;
+   }
+
+   .asset-id-pill { /* This is now the Extension Pill */
+       position: absolute;
+       top: 6px; /* Adjusted slightly from 4px due to container padding */
+       right: 6px; /* Adjusted slightly */
+       background-color: rgba(0, 0, 0, 0.7); /* Slightly darker for better contrast */
+       color: white;
+       padding: 2px 8px; /* Adjusted padding */
+       font-size: 0.6rem; /* Slightly smaller for extensions like JPEG */
+       border-radius: 0.75rem; /* rounded-full */
+       z-index: 10;
+       line-height: 1;
+       font-weight: 600; /* Bolder */
+       text-transform: uppercase;
+   }
+   .asset-controls-container {
+       display: flex;
+       align-items: center;
+       gap: 0.5rem; /* 8px */
+       margin-top: 0.5rem; /* 8px */
+   }
+   .icon-button {
+       background-color: #f3f4f6; /* gray-100 */
+       border: 1px solid #d1d5db; /* gray-300 */
+       color: #6b7280; /* gray-500 */
+       width: 2rem; /* 32px */
+       height: 2rem; /* 32px */
+       border-radius: 0.375rem; /* rounded-md */
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       cursor: pointer;
+       transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+   }
+   .icon-button:hover {
+       background-color: #e5e7eb; /* gray-200 */
+       border-color: #9ca3af; /* gray-400 */
+   }
+   .icon-button.active {
+       background-color: #bfdbfe; /* blue-200 */
+       color: #2563eb; /* blue-600 */
+       border-color: #3b82f6; /* blue-500 */
+   }
+   .icon-button svg {
+       width: 1rem; /* 16px */
+       height: 1rem; /* 16px */
+   }
 
         .lottie-preview-container {
             position: relative;
@@ -334,159 +363,180 @@
         }
 
         function listAssets() {
-            assetList.innerHTML = '';
-            let imageAssetsFound = false;
+        assetList.innerHTML = '';
+        let imageAssetsFound = false;
 
-            if (lottieData && lottieData.assets) {
-                lottieData.assets.forEach((asset, index) => {
-                    if (asset.p && typeof asset.p === 'string' && asset.p.startsWith('data:image/')) {
-                        imageAssetsFound = true;
+        if (lottieData && lottieData.assets) {
+            lottieData.assets.forEach((asset, index) => {
+                if (asset.p && typeof asset.p === 'string' && asset.p.startsWith('data:image/')) {
+                    imageAssetsFound = true;
 
-                        const assetItem = document.createElement('div');
-                        // Updated padding: py-3 (top/bottom 0.75rem), pr-3 (right 0.75rem), pl-5 (left 1.25rem)
-                        assetItem.className = 'bg-white py-3 pr-3 pl-5 rounded-xl border border-gray-200 flex flex-col sm:flex-row items-center gap-3 asset-item-min-height';
-                        assetItem.dataset.assetIndex = index;
-                        assetItem.dataset.lastUploadedRawBase64 = asset.p;
+                    const assetItem = document.createElement('div');
+                    assetItem.className = 'bg-white py-3 pr-3 pl-5 rounded-xl border border-gray-200 flex flex-col sm:flex-row items-start sm:items-center gap-3 asset-item-min-height'; // items-start for sm vertical alignment
+                    assetItem.dataset.assetIndex = index;
+                    assetItem.dataset.lastUploadedRawBase64 = asset.p;
 
-                        const assetDetailsContainer = document.createElement('div');
-                        assetDetailsContainer.className = 'flex-grow w-full text-center sm:text-left';
+                    const assetDetailsContainer = document.createElement('div');
+                    assetDetailsContainer.className = 'flex-grow w-full text-center sm:text-left';
 
-                        const assetInfoDisplay = document.createElement('p');
-                        assetInfoDisplay.className = 'text-gray-600 mt-1 font-medium asset-info-text';
+                    // --- MODIFIED PART FOR ASSET INFO DISPLAY ---
+                    const assetInfoDisplay = document.createElement('div'); // Changed to div for better structure
+                    assetInfoDisplay.className = 'asset-info-text mt-1'; // Main class, mt-1 for a bit of top margin
 
-                        const imageType = getImageTypeFromBase64(asset.p);
-                        const imageSize = getApproximateSizeFromBase64(asset.p);
-                        let dimensionsText = 'Dimensions N/A';
-                        if (asset.w && asset.h) {
-                            dimensionsText = `${asset.w} x ${asset.h} px`;
-                        }
-                        assetInfoDisplay.innerHTML = `
-                            <span class="font-semibold">${imageType}</span> (${imageSize})<br/>
-                            ${dimensionsText}
-                        `;
-                        assetDetailsContainer.appendChild(assetInfoDisplay);
-
-                        const controlsButtonContainer = document.createElement('div');
-                        controlsButtonContainer.className = 'asset-controls-container justify-center sm:justify-start';
-
-                        const aspectRatioButton = document.createElement('button');
-                        aspectRatioButton.className = 'icon-button';
-                        aspectRatioButton.title = 'Toggle Fit/Stretch (Fit when active)';
-                        aspectRatioButton.innerHTML = aspectRatioIconSVG;
-                        let isFitModeActive = false;
-
-                        aspectRatioButton.addEventListener('click', () => {
-                            isFitModeActive = !isFitModeActive;
-                            aspectRatioButton.classList.toggle('active', isFitModeActive);
-
-                            const currentAssetItem = aspectRatioButton.closest('.asset-item-min-height');
-                            const assetIdx = parseInt(currentAssetItem.dataset.assetIndex);
-                            const lastUploadedRawBase64 = currentAssetItem.dataset.lastUploadedRawBase64;
-
-                            if (lastUploadedRawBase64 && lottieData && lottieData.assets && lottieData.assets[assetIdx]) {
-                                const assetImageElementInList = currentAssetItem.querySelector('.preview-image-container img');
-                                if (assetImageElementInList) {
-                                     processAndApplyImage(assetIdx, lastUploadedRawBase64, assetImageElementInList, !isFitModeActive);
-                                }
-                            }
-                        });
-                        controlsButtonContainer.appendChild(aspectRatioButton);
-
-                        const downloadAssetButton = document.createElement('button');
-                        downloadAssetButton.className = 'icon-button';
-                        downloadAssetButton.title = 'Download this asset';
-                        downloadAssetButton.innerHTML = downloadAssetIconSVG;
-                        downloadAssetButton.addEventListener('click', () => {
-                            const currentAssetItem = downloadAssetButton.closest('.asset-item-min-height');
-                            const rawBase64 = currentAssetItem.dataset.lastUploadedRawBase64;
-                            const assetIdForName = lottieData.assets[index].id || `asset_${index}`;
-                            const assetTypeForName = getImageTypeFromBase64(rawBase64).toLowerCase() || 'png';
-
-                            if (rawBase64) {
-                                const link = document.createElement('a');
-                                link.href = rawBase64;
-                                link.download = `${assetIdForName}.${assetTypeForName}`;
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
-                            } else {
-                                alert('No asset data to download.');
-                            }
-                        });
-                        controlsButtonContainer.appendChild(downloadAssetButton);
-                        assetDetailsContainer.appendChild(controlsButtonContainer);
-
-                        const imagePreviewContainer = document.createElement('div');
-                        imagePreviewContainer.className = 'preview-image-container flex-shrink-0 text-center sm:text-right';
-                        imagePreviewContainer.title = 'Click or Drag/Drop to replace asset';
-
-                        const assetImage = document.createElement('img');
-                        assetImage.src = asset.p;
-                        assetImage.alt = `Asset ${asset.id || index}`;
-                        assetImage.className = 'border border-gray-300 rounded preview-image-max-height object-contain mx-auto sm:ml-auto sm:mr-0';
-
-                        const idPill = document.createElement('div');
-                        idPill.className = 'asset-id-pill';
-                        let displayName = asset.id || (asset.p && asset.p.startsWith('img_') ? asset.p : `Asset ${index + 1}`);
-                        if (typeof displayName === 'string' && displayName.startsWith('data:image')) {
-                            displayName = `Asset ${index + 1}`;
-                        }
-                        idPill.textContent = displayName;
-                        imagePreviewContainer.appendChild(idPill);
-                        imagePreviewContainer.appendChild(assetImage);
-
-                        const fileInput = document.createElement('input');
-                        fileInput.type = 'file';
-                        fileInput.accept = 'image/png, image/jpeg, image/gif, image/webp, image/svg+xml';
-                        fileInput.className = 'hidden-file-input';
-                        fileInput.id = `fileInput-${index}`;
-
-                        imagePreviewContainer.addEventListener('click', () => fileInput.click());
-                        imagePreviewContainer.addEventListener('dragover', (e) => {
-                            e.preventDefault(); e.stopPropagation();
-                            imagePreviewContainer.classList.add('drag-over');
-                        });
-                        imagePreviewContainer.addEventListener('dragleave', (e) => {
-                            e.preventDefault(); e.stopPropagation();
-                            imagePreviewContainer.classList.remove('drag-over');
-                        });
-                        imagePreviewContainer.addEventListener('drop', (e) => {
-                            e.preventDefault(); e.stopPropagation();
-                            imagePreviewContainer.classList.remove('drag-over');
-                            const droppedFiles = e.dataTransfer.files;
-                            if (droppedFiles.length > 0) {
-                                const newFile = droppedFiles[0];
-                                const currentAspectRatioButton = assetItem.querySelector('.icon-button[title*="Toggle Fit/Stretch"]');
-                                const shouldStretchOnDrop = !currentAspectRatioButton.classList.contains('active');
-                                handleAssetReplacement(index, newFile, assetImage, shouldStretchOnDrop);
-                            }
-                        });
-
-                        fileInput.addEventListener('change', (e) => {
-                            const newFile = e.target.files[0];
-                            if (newFile) {
-                                const currentAspectRatioButton = assetItem.querySelector('.icon-button[title*="Toggle Fit/Stretch"]');
-                                const shouldStretchOnChange = !currentAspectRatioButton.classList.contains('active');
-                                handleAssetReplacement(index, newFile, assetImage, shouldStretchOnChange);
-                            }
-                        });
-
-                        assetItem.appendChild(assetDetailsContainer);
-                        assetItem.appendChild(imagePreviewContainer);
-                        assetItem.appendChild(fileInput);
-                        assetList.appendChild(assetItem);
+                    // 1. Get Asset Name (previously used for pill)
+                    let assetName = asset.id || `Asset ${index + 1}`;
+                    // Refined asset name logic from original pill display
+                    if (!asset.id && asset.p && asset.p.startsWith('img_')) {
+                       assetName = asset.p; // Or a more user-friendly version if 'img_' is too raw
                     }
-                });
-            }
+                    if (typeof assetName === 'string' && assetName.startsWith('data:image')) {
+                       assetName = `Asset ${index + 1}`; // Fallback for data URIs
+                    }
+                    if (assetName.length > 30) { // Truncate very long names for display
+                        assetName = assetName.substring(0, 27) + '...';
+                    }
 
-            if (imageAssetsFound) {
-                noAssetsMessage.classList.add('hidden');
-            } else {
-                noAssetsMessage.classList.remove('hidden');
-                noAssetsMessage.textContent = 'No replaceable image assets found in this Lottie file.';
-            }
-            updateScrollIndicators();
+
+                    // 2. Get Image Size
+                    const imageSize = getApproximateSizeFromBase64(asset.p);
+
+                    // 3. Get Dimensions
+                    let dimensionsText = 'Dimensions N/A';
+                    if (asset.w && asset.h) {
+                        dimensionsText = `${asset.w}x${asset.h} px`; // Dot removed, will use &bull;
+                    }
+
+                    // Populate the assetInfoDisplay
+                    assetInfoDisplay.innerHTML = `
+                        <span class="asset-name">${assetName}</span>
+                        <span class="asset-details">${imageSize} &bull; ${dimensionsText}</span>
+                    `;
+                    assetDetailsContainer.appendChild(assetInfoDisplay);
+                    // --- END OF MODIFIED ASSET INFO DISPLAY ---
+
+                    const controlsButtonContainer = document.createElement('div');
+                    controlsButtonContainer.className = 'asset-controls-container justify-center sm:justify-start';
+                    // ... (rest of your existing button creation logic: aspectRatioButton, downloadAssetButton)
+                    const aspectRatioButton = document.createElement('button');
+                    aspectRatioButton.className = 'icon-button';
+                    aspectRatioButton.title = 'Toggle Fit/Stretch (Fit when active)';
+                    aspectRatioButton.innerHTML = aspectRatioIconSVG;
+                    let isFitModeActive = false;
+
+                    aspectRatioButton.addEventListener('click', () => {
+                        isFitModeActive = !isFitModeActive;
+                        aspectRatioButton.classList.toggle('active', isFitModeActive);
+                        const currentAssetItem = aspectRatioButton.closest('.asset-item-min-height');
+                        const assetIdx = parseInt(currentAssetItem.dataset.assetIndex);
+                        const lastUploadedRawBase64 = currentAssetItem.dataset.lastUploadedRawBase64;
+                        if (lastUploadedRawBase64 && lottieData && lottieData.assets && lottieData.assets[assetIdx]) {
+                            const assetImageElementInList = currentAssetItem.querySelector('.preview-image-container img');
+                            if (assetImageElementInList) {
+                                 processAndApplyImage(assetIdx, lastUploadedRawBase64, assetImageElementInList, !isFitModeActive);
+                            }
+                        }
+                    });
+                    controlsButtonContainer.appendChild(aspectRatioButton);
+
+                    const downloadAssetButton = document.createElement('button');
+                    downloadAssetButton.className = 'icon-button';
+                    downloadAssetButton.title = 'Download this asset';
+                    downloadAssetButton.innerHTML = downloadAssetIconSVG;
+                    downloadAssetButton.addEventListener('click', () => {
+                        const currentAssetItem = downloadAssetButton.closest('.asset-item-min-height');
+                        const rawBase64 = currentAssetItem.dataset.lastUploadedRawBase64;
+                        const assetIdForName = lottieData.assets[index].id || `asset_${index}`;
+                        const assetTypeForName = getImageTypeFromBase64(rawBase64).toLowerCase() || 'png';
+
+                        if (rawBase64) {
+                            const link = document.createElement('a');
+                            link.href = rawBase64;
+                            link.download = `${assetIdForName}.${assetTypeForName}`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        } else {
+                            alert('No asset data to download.');
+                        }
+                    });
+                    controlsButtonContainer.appendChild(downloadAssetButton);
+                    assetDetailsContainer.appendChild(controlsButtonContainer);
+
+
+                    const imagePreviewContainer = document.createElement('div');
+                    imagePreviewContainer.className = 'preview-image-container flex-shrink-0 text-center sm:text-right';
+                    imagePreviewContainer.title = 'Click or Drag/Drop to replace asset';
+
+                    const assetImage = document.createElement('img');
+                    assetImage.src = asset.p;
+                    assetImage.alt = `Preview for ${assetName}`; // Updated alt text
+                    assetImage.className = 'preview-image-max-height'; // Ensure this class handles max-width/height and object-fit
+
+                    // --- MODIFIED PILL CREATION (NOW FOR EXTENSION) ---
+                    const extensionPill = document.createElement('div');
+                    extensionPill.className = 'asset-id-pill'; // Re-using class, but it now shows extension
+                    const imageTypeForPill = getImageTypeFromBase64(asset.p);
+                    extensionPill.textContent = imageTypeForPill === 'UNKNOWN' ? 'FILE' : imageTypeForPill;
+                    imagePreviewContainer.appendChild(extensionPill);
+                    // --- END OF MODIFIED PILL CREATION ---
+
+                    imagePreviewContainer.appendChild(assetImage);
+
+                    const fileInput = document.createElement('input');
+                    // ... (rest of your fileInput and event listener setup)
+                    fileInput.type = 'file';
+                    fileInput.accept = 'image/png, image/jpeg, image/gif, image/webp, image/svg+xml';
+                    fileInput.className = 'hidden-file-input';
+                    fileInput.id = `fileInput-${index}`;
+
+                    imagePreviewContainer.addEventListener('click', () => fileInput.click());
+                    imagePreviewContainer.addEventListener('dragover', (e) => {
+                        e.preventDefault(); e.stopPropagation();
+                        imagePreviewContainer.classList.add('drag-over');
+                    });
+                    imagePreviewContainer.addEventListener('dragleave', (e) => {
+                        e.preventDefault(); e.stopPropagation();
+                        imagePreviewContainer.classList.remove('drag-over');
+                    });
+                    imagePreviewContainer.addEventListener('drop', (e) => {
+                        e.preventDefault(); e.stopPropagation();
+                        imagePreviewContainer.classList.remove('drag-over');
+                        const droppedFiles = e.dataTransfer.files;
+                        if (droppedFiles.length > 0) {
+                            const newFile = droppedFiles[0];
+                            const currentAspectRatioButton = assetItem.querySelector('.icon-button[title*="Toggle Fit/Stretch"]');
+                            const shouldStretchOnDrop = !currentAspectRatioButton.classList.contains('active');
+                            handleAssetReplacement(index, newFile, assetImage, shouldStretchOnDrop);
+                        }
+                    });
+
+                    fileInput.addEventListener('change', (e) => {
+                        const newFile = e.target.files[0];
+                        if (newFile) {
+                            const currentAspectRatioButton = assetItem.querySelector('.icon-button[title*="Toggle Fit/Stretch"]');
+                            const shouldStretchOnChange = !currentAspectRatioButton.classList.contains('active');
+                            handleAssetReplacement(index, newFile, assetImage, shouldStretchOnChange);
+                        }
+                    });
+
+
+                    assetItem.appendChild(assetDetailsContainer);
+                    assetItem.appendChild(imagePreviewContainer);
+                    assetItem.appendChild(fileInput);
+                    assetList.appendChild(assetItem);
+                }
+            });
         }
+
+        if (imageAssetsFound) {
+            noAssetsMessage.classList.add('hidden');
+        } else {
+            noAssetsMessage.classList.remove('hidden');
+            noAssetsMessage.textContent = 'No replaceable image assets found in this Lottie file.';
+        }
+        updateScrollIndicators();
+    }
+
 
         function handleAssetReplacement(assetIndex, newFile, assetImageElementInList, shouldStretch) {
             const reader = new FileReader();
