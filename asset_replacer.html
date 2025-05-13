@@ -578,7 +578,7 @@
                 const baseName = lottieFileName.replace(/\.json$/i, '');
                 const downloadFilenameToUse = `${baseName}_modified.json`;
 
-                const jsonString = JSON.stringify(lottieData, null, 2);
+                const jsonString = JSON.stringify(lottieData);
                 const blob = new Blob([jsonString], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
