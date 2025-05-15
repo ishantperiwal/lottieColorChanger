@@ -1106,12 +1106,14 @@ background-color: #004085; /* Even darker */
     }
 
     // Play segment function (remains simple)
-    function playSeg(seg) {
+     function playSeg(seg) {
       if (!animation) return;
       console.log(`Playing frames ${seg.start} to ${seg.end}`);
+        const addNumber = originalData.ip;
+
       // Ensure segment bounds are valid before playing
-      const safeStart = Math.max(0, Math.min(seg.start, totalFrames - 1));
-      const safeEnd = Math.max(safeStart + 1, Math.min(seg.end, totalFrames));
+      const safeStart = seg.start + addNumber;
+      const safeEnd = seg.end+ addNumber;
 
       animation.goToAndStop(safeStart, true); // Go to the validated start frame
       animation.playSegments([safeStart, safeEnd], true); // Play the validated segment
