@@ -964,7 +964,9 @@ background-color: #004085; /* Even darker */
          // Ensure values don't cross after clamping
          seg.start = Math.min(seg.start, seg.end - 1);
          seg.end = Math.max(seg.end, seg.start + 1);
-
+          fullSeek.value = val;
+            animation.goToAndStop(val, true);
+       
          syncSegmentUI(seg); // Update sliders and highlights
          drawGlobalBar(); // Update main bar visualization
      }
