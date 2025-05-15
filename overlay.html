@@ -628,6 +628,7 @@ background-color: #004085; /* Even darker */
     const handleSeekInput = (e) => {
       if (!animation) return;
       const f = +e.target.value;
+        animation.resetSegments(true);
       animation.goToAndStop(f, true);
       // Optionally update tooltip during manual drag
        updateTooltip(f);
