@@ -628,7 +628,7 @@ background-color: #004085; /* Even darker */
     const handleSeekInput = (e) => {
       if (!animation) return;
       const f = +e.target.value;
-        animation.resetSegments(true);
+      animation.resetSegments(true);
       animation.goToAndStop(f, true);
       // Optionally update tooltip during manual drag
        updateTooltip(f);
@@ -816,6 +816,9 @@ background-color: #004085; /* Even darker */
          fullSeek.addEventListener('blur', () => { if (tooltip.style.display === 'block') handleSeekChange();}); // Hide after focus leaves if it was shown
 
 
+
+
+
         document.getElementById('addSegment').disabled = false;
         document.getElementById('downloadAll').disabled = false;
         if (Array.isArray(data.markers) && data.markers.length > 0) {
@@ -967,6 +970,7 @@ background-color: #004085; /* Even darker */
      }
 
      function handleSegmentRangeInput(e) {
+       animation.resetSegments(true);
          const seg = segments.find(s => s.id == e.target.dataset.id);
           if (!seg || !totalFrames) return;
          const type = e.target.dataset.type;
@@ -985,7 +989,7 @@ background-color: #004085; /* Even darker */
 
              // 2. Go to the corresponding frame in the animation preview
              animation.goToAndStop(val, true);
-
+             console.log('here');
              // 3. Update and show the tooltip for the main seek bar
              updateTooltip(val);
              tooltip.style.display = 'block'; // Make tooltip visible
@@ -1038,6 +1042,7 @@ background-color: #004085; /* Even darker */
         const id = +e.target.dataset.id;
         const segmentButton = e.target;
         const segmentToPlay = segments.find(s => s.id === id);
+
 
         if (!segmentToPlay || !animation) return; // Exit if segment or animation not found
 
@@ -1102,21 +1107,23 @@ background-color: #004085; /* Even darker */
             animation.addEventListener('enterFrame', updateSeekOnEnterFrame_Segment); // Enable segment update logic
 
             animation.loop = true; // Segments loop by default in this logic
+
             playSeg(segmentToPlay); // Play the selected segment
         }
     }
 
     // Play segment function (remains simple)
-     function playSeg(seg) {
+    function playSeg(seg) {
       if (!animation) return;
+      animation.resetSegments(true);
       console.log(`Playing frames ${seg.start} to ${seg.end}`);
         const addNumber = originalData.ip;
 
       // Ensure segment bounds are valid before playing
       const safeStart = seg.start + addNumber;
       const safeEnd = seg.end+ addNumber;
-
-      animation.goToAndStop(safeStart, true); // Go to the validated start frame
+        console.log(`Playing frames add number ${safeStart} to ${safeEnd}`);
+   // Go to the validated start frame
       animation.playSegments([safeStart, safeEnd], true); // Play the validated segment
     }
 
