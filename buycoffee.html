@@ -452,6 +452,39 @@
     /* vertical-align: middle; -- Might not be needed if using flexbox on parent */
 }
 
+
+	    .copy-upi-button {
+    background: transparent;
+    border: none;
+    padding: 5px;
+    margin-left: 10px; /* Adjust spacing as needed */
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%; /* Optional: make the button itself circular */
+    transition: background-color 0.2s ease;
+}
+
+.copy-upi-button:hover {
+    background-color: rgba(0, 0, 0, 0.05); /* Subtle hover effect */
+}
+
+.copy-upi-button svg {
+    width: 18px; /* Adjust icon size */
+    height: 18px; /* Adjust icon size */
+    fill: var(--text-color); /* Use your theme's text color */
+}
+
+.copy-upi-button .copy-icon.hidden,
+.copy-upi-button .checkmark-icon.hidden {
+    display: none;
+}
+
+.copy-upi-button .checkmark-icon {
+    fill: green; /* Color for the success checkmark */
+}
+
     </style>
 </head>
 <body>
@@ -495,10 +528,18 @@
                 </button>
                 <div id="qr-code-itself"></div>
                 <p class="qr-payment-info">Send <strong id="qr-amount-bold">₹<span>0.00</span></strong></p>
-                <div class="upi-id-pill">
-                    <div class="upi-profile-pic-placeholder"></div>
-                    <span class="upi-id-text">9034401875@pz</span>
-                </div>
+                               <div class="upi-id-pill">
+    <div class="upi-profile-pic-placeholder"></div>
+    <span class="upi-id-text" id="upiIdToCopy">9034401875@pz</span>
+    <button id="copyUpiButton" class="copy-upi-button" aria-label="Copy UPI ID">
+        <svg class="copy-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+        </svg>
+        <svg class="checkmark-icon" style="display:none;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+        </svg>
+    </button>
+</div>
             </div>
         </div>
     </div>
@@ -555,6 +596,52 @@
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
         `;
+
+
+	const copyUpiButton = document.getElementById('copyUpiButton');
+const upiIdElement = document.getElementById('upiIdToCopy'); // The span holding the UPI ID
+
+if (copyUpiButton && upiIdElement) {
+    const upiIdValue = upiIdElement.textContent.trim(); // Get the UPI ID text
+    const copyIcon = copyUpiButton.querySelector('.copy-icon');
+    const checkmarkIcon = copyUpiButton.querySelector('.checkmark-icon');
+
+    copyUpiButton.addEventListener('click', () => {
+        if (!navigator.clipboard) {
+            // Fallback for older browsers or non-secure contexts if needed
+            // For simplicity, we'll alert the user or they can use the existing showCustomAlert
+            showCustomAlert('Clipboard API not available. Please copy manually.');
+            console.error('Clipboard API not available.');
+            return;
+        }
+
+        navigator.clipboard.writeText(upiIdValue).then(() => {
+            // Success! Visual feedback:
+            if (copyIcon && checkmarkIcon) {
+                copyIcon.style.display = 'none';
+                checkmarkIcon.style.display = 'inline-block';
+                copyUpiButton.disabled = true; // Briefly disable button
+            }
+
+            // Revert after a short delay
+            setTimeout(() => {
+                if (copyIcon && checkmarkIcon) {
+                    copyIcon.style.display = 'inline-block';
+                    checkmarkIcon.style.display = 'none';
+                    copyUpiButton.disabled = false;
+                }
+            }, 2000); // Show checkmark for 2 seconds
+
+        }).catch(err => {
+            console.error('Failed to copy UPI ID: ', err);
+            // You can use your existing showCustomAlert for error feedback
+            showCustomAlert('Failed to copy. Please try again or copy manually.');
+        });
+    });
+}
+
+
+	    
 
         let qrCodeInstance = null;
 
