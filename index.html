@@ -1671,8 +1671,13 @@ max-width: 1200px;
    #filterInfoPill {
        /* Styles are mostly inline for now, can be moved to CSS */
        box-shadow: var(--shadow-sm);
+	    border: 2px solid rgb(255, 174, 170);
    }
+#filterInfoPill:hover {
 
+    border: 2px solid #F7837D;
+    
+}
    /* Class to hide elements during filtering */
    .hidden-by-filter {
        display: none !important;
@@ -1813,7 +1818,7 @@ max-width: 1200px;
     <div id="editorArea">
 
 
-      <div id="filterInfoPill" style="display: none; align-items: center; gap: 6px; padding: 8px 12px; padding-left:16px; background-color: rgb(255 174 170); border-radius: 20px; margin: 30px auto 10px; width: fit-content; max-width: 90%;">
+      <div id="filterInfoPill" style="display: none; align-items: center; gap: 6px; padding: 8px 12px; padding-left:16px; background-color: rgb(255 174 170); border-radius: 999px; margin: 30px auto 10px; width: fit-content; max-width: 90%;">
    <span style="font-size: 0.9em;">Dismiss Color Search</span>
    <span id="filterPillColorSwatch" style="display: none; width: 20px; height: 20px; border: 1px solid #777; border-radius: 4px; vertical-align: middle;"></span>
    <span id="filterPillHexDisplay" style="font-size: 0.9em; font-family: monospace; display: none;">#XXXXXX</span>
