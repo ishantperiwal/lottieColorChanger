@@ -139,6 +139,18 @@
     }
     .icon-button svg { width: 1rem; height: 1rem; }
 
+    /* Style for enabled (changed) reset button */
+    .icon-button.reset-asset-button-enabled {
+        background-color: #d1fae5; /* Tailwind green-100 */
+        border-color: #6ee7b7; /* Tailwind green-300 */
+        color: #059669; /* Tailwind green-600 */
+    }
+    .icon-button.reset-asset-button-enabled:hover:not(:disabled) { /* Ensure hover only applies when not disabled */
+        background-color: #a7f3d0; /* Tailwind green-200 */
+        border-color: #34d399; /* Tailwind green-400 */
+    }
+
+
     .lottie-preview-wrapper {
         border-radius: 0.75rem;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
@@ -154,28 +166,28 @@
         border-top: 1px solid #e5e7eb;
     }
 
-    .action-button-group { /* For grouping download buttons */
+    .action-button-group {
         display: flex;
-        gap: 0.75rem; /* space between download buttons */
+        gap: 0.75rem;
     }
 
-    #downloadLottie, #downloadAllAssetsButton { /* Shared styles for download buttons */
+    #downloadLottie, #downloadAllAssetsButton {
         width: 2.5rem; height: 2.5rem;
         color: white;
         border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center;
         box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
         transition: background-color 0.2s ease, transform 0.1s ease;
     }
-    #downloadLottie { background-color: #10b981; /* emerald-500 */ }
-    #downloadLottie:hover:not(:disabled) { background-color: #059669; /* emerald-600 */ transform: scale(1.05); }
+    #downloadLottie { background-color: #10b981; }
+    #downloadLottie:hover:not(:disabled) { background-color: #059669; transform: scale(1.05); }
     #downloadLottie:active:not(:disabled) { transform: scale(0.98); }
 
-    #downloadAllAssetsButton { background-color: #6366f1; /* indigo-500 */ }
-    #downloadAllAssetsButton:hover:not(:disabled) { background-color: #4f46e5; /* indigo-600 */ transform: scale(1.05); }
+    #downloadAllAssetsButton { background-color: #6366f1; }
+    #downloadAllAssetsButton:hover:not(:disabled) { background-color: #4f46e5; transform: scale(1.05); }
     #downloadAllAssetsButton:active:not(:disabled) { transform: scale(0.98); }
 
     #downloadLottie:disabled, #downloadAllAssetsButton:disabled {
-        background-color: #9ca3af; /* gray-400 */
+        background-color: #9ca3af;
         opacity: 0.7; cursor: not-allowed;
     }
     #downloadLottie svg, #downloadAllAssetsButton svg { width: 1.25rem; height: 1.25rem; }
@@ -197,7 +209,7 @@
     #cancelSequenceButton {
         background-color: #ef4444; color: white; border: 1px solid transparent;
         padding: 0.5rem; width: auto; height: auto; justify-content: center;
-border-radius: 999px;
+        border-radius: 999px;
     }
     #cancelSequenceButton:hover:not(:disabled) { background-color: #dc2626; }
     #cancelSequenceButton svg { width: 1.25rem; height: 1.25rem; }
@@ -226,9 +238,9 @@ border-radius: 999px;
         z-index: 50;
         opacity: 0; pointer-events: none;
         transition: opacity 0.3s ease-in-out;
-	height: 40px;
-padding-right: 0.4rem;
-padding-left: 0.6rem;
+        height: 40px;
+        padding-right: 0.4rem;
+        padding-left: 0.6rem;
     }
     .tooltip-base.visible { opacity: 1; pointer-events: auto; }
 
@@ -239,26 +251,41 @@ padding-left: 0.6rem;
         background-color: #fef2f2; /* Tailwind red-50 */
         color: #991b1b; /* Tailwind red-800 */
         border: 1px solid #fecaca; /* Tailwind red-300 */
+        /* Allow space for two buttons */
+        justify-content: space-between;
     }
-     #sequenceErrorTooltip .replace-anyway-button {
-        background-color: #dc2626; /* Tailwind red-600 */
-        color: white;
+    .error-tooltip-button { /* Base for error tooltip buttons */
         padding: 0.25rem 0.75rem;
         border-radius: 1.375rem;
         font-size: 0.75rem;
         font-weight: 500;
-    width: 130px;
-    height: 30px;
-        transition: background-color 0.2s ease;
+        height: 30px;
+        transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+     #sequenceErrorTooltip .replace-anyway-button {
+        background-color: #dc2626; /* Tailwind red-600 */
+        color: white;
+        /* width: 130px; */ /* Let flexbox handle width */
     }
     #sequenceErrorTooltip .replace-anyway-button:hover {
-        background-color: #fef2f2;
-    color: #991b1b;
-    border: 1px solid #fecaca;
-    width: 60%;
-    padding: 24px;
-    padding-right: 12px;
+        background-color: #b91c1c; /* Darker red */
     }
+    #sequenceErrorTooltip .select-again-button {
+        background-color: none; /* Tailwind gray-200 */
+        color: #8d4141;
+      border: 1px solid #ad4848;
+    }
+    #sequenceErrorTooltip .select-again-button:hover {
+        background-color: #ffc6c6; /* Tailwind gray-300 */
+        /* Tailwind gray-400 */
+    }
+
     .selection-counter-pill {
         background-color: #3b82f6; /* Tailwind blue-500 */
         color: white;
@@ -266,6 +293,7 @@ padding-left: 0.6rem;
         border-radius: 9999px;
         font-size: 0.75rem;
         font-weight: 500;
+        cursor: pointer;
     }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -288,13 +316,13 @@ padding-left: 0.6rem;
             <div class="preview-buttons-bar">
                 <div id="replaceSequenceContainer">
                     <button id="replaceSequenceButton" class="sequence-button" title="Replace a sequence of assets" disabled>
-    <img src="assets/sequence.svg" alt="Replace Sequence" class="w-5 h-5">
-    <span style="margin-bottom: 1px;">Select Sequence</span>
-</button>
-                 <button id="browseSequenceFilesButton" class="sequence-button hidden" title="Choose multiple files">
-    <img src="assets/multifiles.svg" alt="Choose multiple files" class="w-5 h-5">
-    <span id="browseSequenceFilesButtonText" style="margin-bottom: 1px;">Replace Selected</span>
-</button>
+                        <img src="assets/sequence.svg" alt="Replace Sequence" class="w-5 h-5">
+                        <span style="margin-bottom: 1px;">Select Sequence</span>
+                    </button>
+                    <button id="browseSequenceFilesButton" class="sequence-button hidden" title="Choose multiple files">
+                        <img src="assets/multifiles.svg" alt="Choose multiple files" class="w-5 h-5">
+                        <span id="browseSequenceFilesButtonText" style="margin-bottom: 1px;">Replace Selected</span>
+                    </button>
                     <button id="cancelSequenceButton" class="sequence-button hidden" title="Cancel sequence replacement">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -303,8 +331,8 @@ padding-left: 0.6rem;
                 </div>
                 <div class="action-button-group">
                     <button id="downloadAllAssetsButton" title="Download All Assets as ZIP" disabled>
-    <img src="assets/zip.svg" alt="Download ZIP" class="w-5 h-5">
-</button>
+                        <img src="assets/zip.svg" alt="Download ZIP" class="w-5 h-5">
+                    </button>
                     <button id="downloadLottie" title="Download Modified Lottie" disabled>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                             <path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z" />
@@ -327,29 +355,30 @@ padding-left: 0.6rem;
     </div>
 
      <div id="sequenceTooltip" class="tooltip-base">
-
-        <span id="selectionCounterPill" class="selection-counter-pill">0 Selected</span>
-        <span style="margin-bottom: 1px;">Please select the first and the last image of your sequence</span>   <button id="closeSequenceTooltipButton" aria-label="Close sequence selection" title="Cancel sequence selection"
-    style="display: flex; align-items: center; justify-content: center; width: 1.5rem; height: 1.5rem;
-    border-radius: 9999px; background-color: #ef4444; color: white; cursor: pointer; margin-right: 0.15rem;
-    flex-shrink: 0; border: none; padding: 0;">
-    <img src="assets/close.svg" alt="Close" style="width: 0.875rem; height: 0.875rem;">
-</button>
+        <span id="selectionCounterPill" class="selection-counter-pill" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 10px;">0 Selected</span>
+        <span style=" margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Please select the first and the last image of your sequence</span>
+        <button id="closeSequenceTooltipButton" aria-label="Close sequence selection" title="Cancel sequence selection"
+            style="display: flex; align-items: center; justify-content: center; width: 1.5rem; height: 1.5rem;
+            border-radius: 9999px; background-color: #ef4444; color: white; cursor: pointer; margin-right: 0.15rem;
+            flex-shrink: 0; border: none; padding: 0;">
+            <img src="assets/close.svg" alt="Close" style="width: 0.875rem; height: 0.875rem;">
+        </button>
     </div>
 
     <div id="sequenceErrorTooltip" class="tooltip-base">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-red-500">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-        </svg>
-        <span id="sequenceErrorText">Please ensure the number of selections is equal to the number of assets selected.</span>
-        <button id="replaceAnywayButton" class="replace-anyway-button ml-auto">Replace Anyway</button>
+
+        <span id="sequenceErrorText" class="flex-grow" style="margin-right: 8px; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Please ensure the number of selections is equal to the number of assets selected.</span>
+        <div class="flex gap-2 flex-shrink-0">
+            <button id="selectAgainButton" class="error-tooltip-button select-again-button">Select Again</button>
+             <button id="replaceAnywayButton" class="error-tooltip-button replace-anyway-button">Replace Anyway</button>
+        </div>
     </div>
 
     <script>
         let animationInstance = null;
         let lottieData = null;
         let lottieFileName = 'animation.json';
-        let lastSelectedFiles = []; // For sequence replacement error handling
+        let lastSelectedFiles = [];
 
         // DOM Elements
         const lottieFileWrapper = document.getElementById('lottieFileWrapper');
@@ -369,16 +398,17 @@ padding-left: 0.6rem;
         const sequenceErrorTooltip = document.getElementById('sequenceErrorTooltip');
         const sequenceErrorText = document.getElementById('sequenceErrorText');
         const replaceAnywayButton = document.getElementById('replaceAnywayButton');
+        const selectAgainButton = document.getElementById('selectAgainButton'); // New button
         const replaceSequenceButton = document.getElementById('replaceSequenceButton');
         const browseSequenceFilesButton = document.getElementById('browseSequenceFilesButton');
-        const browseSequenceFilesButtonText = document.getElementById('browseSequenceFilesButtonText'); // Not used currently, but good to have
+        const browseSequenceFilesButtonText = document.getElementById('browseSequenceFilesButtonText');
         const cancelSequenceButton = document.getElementById('cancelSequenceButton');
         const multipleFilesInput = document.getElementById('multipleFilesInput');
-	const closeSequenceTooltipButton = document.getElementById('closeSequenceTooltipButton');
+        const closeSequenceTooltipButton = document.getElementById('closeSequenceTooltipButton');
 
         // State Variables
         let isSequenceModeActive = false;
-        let selectedAssetIndicesForSequence = []; // Stores original asset indices
+        let selectedAssetIndicesForSequence = [];
 
         // SVG Icons for buttons
         const aspectRatioIconSVG = `
@@ -389,10 +419,14 @@ padding-left: 0.6rem;
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
             </svg>`;
+        // Updated Reset/Undo Icon
+        const resetAssetIconSVG = `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+            </svg>`;
 
         /**
          * Processes the Lottie JSON data, initializes preview and asset list.
-         * Stores original Lottie dimensions for each asset.
          */
         function processLottieData(data, fileNameFromMessage) {
             try {
@@ -401,16 +435,20 @@ padding-left: 0.6rem;
                 else if (lottieFileInput.files[0]) lottieFileName = lottieFileInput.files[0].name;
 
                 if (!lottieData.assets) lottieData.assets = [];
-                // Store original Lottie dimensions for each asset if they exist
+
                 if (lottieData.assets) {
                     lottieData.assets.forEach(asset => {
                         if (asset.w && asset.h) {
                             asset.originalLottieW = asset.w;
                             asset.originalLottieH = asset.h;
                         }
-                        // If originalLottieW/H are still undefined, it means the Lottie asset had no w/h.
-                        // We can leave them undefined, or set to null/0 to be explicit.
-                        // For now, leaving them undefined is fine as checks like `if (originalLottieSlotW && originalLottieSlotH)` handle it.
+                        if (asset.p && typeof asset.p === 'string' && asset.p.startsWith('data:image/')) {
+                            asset.originalAssetP = asset.p;
+                            asset.originalAssetW = asset.w;
+                            asset.originalAssetH = asset.h;
+                            asset.originalAssetMimeType = getMimeTypeFromBase64(asset.p);
+                            asset.hasChanged = false;
+                        }
                     });
                 }
                 displayLottiePreview();
@@ -433,7 +471,6 @@ padding-left: 0.6rem;
             }
         }
 
-        // Event listener for Lottie file input
         lottieFileInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (file && file.type === 'application/json') {
@@ -452,32 +489,26 @@ padding-left: 0.6rem;
                 };
                 reader.readAsText(file);
             } else if (file) {
-                // Simple user feedback for wrong file type - replace with a modal if needed
                 lottiePreview.innerHTML = `<p class="text-orange-500">Please select a valid JSON file. You selected: ${file.name} (${file.type})</p>`;
             }
         });
 
-        // Listen for Lottie data from parent window (e.g., if embedded in another tool)
         window.addEventListener('message', (event) => {
             if (event.data && event.data.type === 'lottieDataAssetTool' && event.data.lottieData) {
                 processLottieData(event.data.lottieData, event.data.filename);
-                lottieFileWrapper.classList.add('hidden-if-data-received'); // Hide file input if data comes from parent
+                lottieFileWrapper.classList.add('hidden-if-data-received');
             }
         });
 
-        /**
-         * Displays the Lottie animation preview.
-         */
         function displayLottiePreview() {
             const previewElement = document.getElementById('lottiePreview');
             if (animationInstance) {
                 animationInstance.destroy();
                 animationInstance = null;
             }
-            previewElement.innerHTML = ''; // Clear previous preview or message
+            previewElement.innerHTML = '';
 
             if (lottieData && lottieData.assets) {
-                // Deep clone lottieData for the animation to prevent modification issues
                 const animationDataForLottie = JSON.parse(JSON.stringify(lottieData));
                 animationInstance = lottie.loadAnimation({
                     container: previewElement,
@@ -491,7 +522,6 @@ padding-left: 0.6rem;
             }
         }
 
-        // Helper functions for asset info
         function getImageTypeFromBase64(base64String) {
             const match = base64String.match(/^data:image\/([^;]+);base64,/);
             return match && match[1] ? match[1].toUpperCase() : 'UNKNOWN';
@@ -512,27 +542,21 @@ padding-left: 0.6rem;
             return kBytes < 1 ? `${kBytes.toFixed(2)} KB` : `${Math.round(kBytes)} KB`;
         }
 
-        /**
-         * Updates the display of a single asset card (image, dimensions, type, button states).
-         * @param {number} assetIndex - The index of the asset in lottieData.assets.
-         * @param {number} currentProcessedW - The current width of the asset as it is in Lottie data.
-         * @param {number} currentProcessedH - The current height of the asset as it is in Lottie data.
-         * @param {number} [rawUploadedImgW] - Natural width of the user's last uploaded image for this slot.
-         * @param {number} [rawUploadedImgH] - Natural height of the user's last uploaded image for this slot.
-         */
         function updateAssetCardDisplay(assetIndex, currentProcessedW, currentProcessedH, rawUploadedImgW, rawUploadedImgH) {
             const assetItem = document.querySelector(`.asset-item[data-asset-index='${assetIndex}']`);
             if (!assetItem) return;
 
+            const assetData = lottieData.assets[assetIndex];
             const rawUploadedBase64ForPreview = assetItem.dataset.lastUploadedRawBase64;
-            const processedBase64ForLottie = lottieData.assets[assetIndex].p;
-            const originalLottieSlotW = lottieData.assets[assetIndex].originalLottieW;
-            const originalLottieSlotH = lottieData.assets[assetIndex].originalLottieH;
+            const processedBase64ForLottie = assetData.p;
+            const originalLottieSlotW = assetData.originalLottieW;
+            const originalLottieSlotH = assetData.originalLottieH;
 
             const assetImage = assetItem.querySelector('.preview-image-container img');
             const extensionPill = assetItem.querySelector('.asset-id-pill');
             const assetDetailsSpan = assetItem.querySelector('.asset-info-text .asset-details');
             const aspectRatioButton = assetItem.querySelector('.icon-button[title*="Toggle Cover/Stretch"]');
+            const resetButton = assetItem.querySelector('.reset-asset-button');
 
             const existingWarning = assetDetailsSpan.querySelector('.size-mismatch-warning');
             if (existingWarning) existingWarning.remove();
@@ -550,27 +574,25 @@ padding-left: 0.6rem;
                 const isSVG = (finalMimeType === 'image/svg+xml');
                 let disableButtonForRaster = false;
                 if (!isSVG) {
-                    if (originalLottieSlotW && originalLottieSlotH) { // If Lottie slot dimensions are defined
-                        // Disable button if the RAW UPLOADED image's dimensions match the slot.
-                        // rawUploadedImgW/H are passed after a new image is processed.
-                        // If they are not passed (e.g. initial listAssets), this condition won't make it true unless we load raw image there too.
-                        // For now, this relies on rawUploadedImgW/H being available from processAndApplyImage.
+                    if (originalLottieSlotW && originalLottieSlotH) {
                         disableButtonForRaster = rawUploadedImgW && rawUploadedImgH &&
                                                  rawUploadedImgW === originalLottieSlotW &&
                                                  rawUploadedImgH === originalLottieSlotH;
                     } else {
-                        // No Lottie slot dimensions defined for this asset. Cover/stretch is not applicable.
                         disableButtonForRaster = true;
                     }
                 }
-
                 aspectRatioButton.disabled = isSVG || disableButtonForRaster;
                 aspectRatioButton.classList.toggle('opacity-50', aspectRatioButton.disabled);
                 aspectRatioButton.classList.toggle('cursor-not-allowed', aspectRatioButton.disabled);
-
-                if (aspectRatioButton.disabled) { // If button ends up disabled for any reason
-                    aspectRatioButton.classList.remove('active'); // Reset to stretch (non-active)
+                if (aspectRatioButton.disabled) {
+                    aspectRatioButton.classList.remove('active');
                 }
+            }
+
+            if (resetButton && assetData) {
+                resetButton.disabled = !assetData.hasChanged;
+                resetButton.classList.toggle('reset-asset-button-enabled', assetData.hasChanged);
             }
 
             if (assetDetailsSpan && processedBase64ForLottie) {
@@ -586,10 +608,6 @@ padding-left: 0.6rem;
             }
         }
 
-
-        /**
-         * Lists all replaceable image assets from the Lottie data.
-         */
         function listAssets() {
             assetList.innerHTML = '';
             let imageAssetsFound = false;
@@ -603,8 +621,8 @@ padding-left: 0.6rem;
                         const assetItem = document.createElement('div');
                         assetItem.className = 'asset-item bg-white py-3 pl-3 pr-3 rounded-xl border border-gray-200 flex items-start sm:items-center gap-3';
                         assetItem.dataset.assetIndex = index;
-                        assetItem.dataset.lastUploadedRawBase64 = asset.p;
-                        const initialMimeType = getMimeTypeFromBase64(asset.p);
+                        assetItem.dataset.lastUploadedRawBase64 = asset.originalAssetP || asset.p;
+                        const initialMimeType = asset.originalAssetMimeType || getMimeTypeFromBase64(asset.p);
                         assetItem.dataset.originalFileType = initialMimeType;
 
                         const sequenceCheckboxContainer = document.createElement('div');
@@ -651,14 +669,13 @@ padding-left: 0.6rem;
                         const isSVGInitial = initialMimeType === 'image/svg+xml';
                         let disableButtonForRasterInitial = false;
                         if (!isSVGInitial) {
-                            if (asset.originalLottieW && asset.originalLottieH) { // Slot dimensions defined
-                                // Disable if current Lottie image dimensions match the slot dimensions
-                                // This assumes asset.w/h are the natural dimensions of the image currently in Lottie
-                                // or have been processed to match the slot.
-                                disableButtonForRasterInitial = asset.w && asset.h &&
-                                                                Math.round(asset.w) === asset.originalLottieW &&
-                                                                Math.round(asset.h) === asset.originalLottieH;
-                            } else { // No slot dimensions defined for this asset in Lottie
+                            if (asset.originalLottieW && asset.originalLottieH) {
+                                const checkW = asset.originalAssetW !== undefined ? asset.originalAssetW : asset.w;
+                                const checkH = asset.originalAssetH !== undefined ? asset.originalAssetH : asset.h;
+                                disableButtonForRasterInitial = checkW && checkH &&
+                                                                Math.round(checkW) === asset.originalLottieW &&
+                                                                Math.round(checkH) === asset.originalLottieH;
+                            } else {
                                 disableButtonForRasterInitial = true;
                             }
                         }
@@ -668,7 +685,6 @@ padding-left: 0.6rem;
                              aspectRatioButton.classList.remove('active');
                              aspectRatioButton.classList.add('opacity-50', 'cursor-not-allowed');
                         }
-
 
                         aspectRatioButton.addEventListener('click', async () => {
                             if (aspectRatioButton.disabled) return;
@@ -681,38 +697,37 @@ padding-left: 0.6rem;
                             const base64ToProcessForToggle = currentAssetItem.dataset.lastUploadedRawBase64;
                             const mimeTypeForProcessing = currentAssetItem.dataset.originalFileType || getMimeTypeFromBase64(base64ToProcessForToggle);
 
-                            if (isSequenceModeActive && selectedAssetIndicesForSequence.includes(assetIdx)) {
-                                const promises = selectedAssetIndicesForSequence.map(idxInSequence => {
-                                    const itemInSequence = document.querySelector(`.asset-item[data-asset-index='${idxInSequence}']`);
-                                    const assetDataInSequence = lottieData.assets[idxInSequence];
-                                    const btnInSequence = itemInSequence ? itemInSequence.querySelector('.icon-button[title*="Toggle Cover/Stretch"]') : null;
+                            const processAndUpdate = async (idxToUpdate) => {
+                                const itemToUpdate = document.querySelector(`.asset-item[data-asset-index='${idxToUpdate}']`);
+                                const assetDataToUpdate = lottieData.assets[idxToUpdate];
+                                const btnInItem = itemToUpdate ? itemToUpdate.querySelector('.icon-button[title*="Toggle Cover/Stretch"]') : null;
 
-                                    if (itemInSequence && assetDataInSequence && btnInSequence && !btnInSequence.disabled) {
-                                        btnInSequence.classList.toggle('active', newCoverModeActiveState);
-                                        const rawBase64ForSeqItem = itemInSequence.dataset.lastUploadedRawBase64;
-                                        const mimeTypeForSeqItem = itemInSequence.dataset.originalFileType || getMimeTypeFromBase64(rawBase64ForSeqItem);
-                                        const imgElementForList = itemInSequence.querySelector('.preview-image-container img');
-                                        if (rawBase64ForSeqItem && imgElementForList) {
-                                            return processAndApplyImage(idxInSequence, rawBase64ForSeqItem, imgElementForList, newShouldStretchState, mimeTypeForSeqItem, true);
-                                        }
-                                    }
-                                    return Promise.resolve();
-                                });
-                                try { await Promise.all(promises); }
-                                catch (error) { console.error(`Error applying toggle to sequence: ${error.message || error}`); }
-                                displayLottiePreview();
-                            } else {
-                                if (base64ToProcessForToggle && lottieData.assets[assetIdx]) {
-                                    const assetImageElementInList = currentAssetItem.querySelector('.preview-image-container img');
-                                    if (assetImageElementInList) {
-                                         try {
-                                            await processAndApplyImage(assetIdx, base64ToProcessForToggle, assetImageElementInList, newShouldStretchState, mimeTypeForProcessing);
-                                         } catch (error) {
-                                            console.error(`Error applying toggle to asset ${assetIdx + 1}: ${error.message || error}`);
-                                         }
+                                if (itemToUpdate && assetDataToUpdate && btnInItem && !btnInItem.disabled) {
+                                    btnInItem.classList.toggle('active', newCoverModeActiveState);
+
+                                    const rawBase64ForThisItem = itemToUpdate.dataset.lastUploadedRawBase64;
+                                    const mimeTypeForThisItem = itemToUpdate.dataset.originalFileType || getMimeTypeFromBase64(rawBase64ForThisItem);
+                                    const imgElementForList = itemToUpdate.querySelector('.preview-image-container img');
+                                    if (rawBase64ForThisItem && imgElementForList) {
+                                        await processAndApplyImage(idxToUpdate, rawBase64ForThisItem, imgElementForList, newShouldStretchState, mimeTypeForThisItem, true);
                                     }
                                 }
+                            };
+
+                            if (isSequenceModeActive && selectedAssetIndicesForSequence.includes(assetIdx)) {
+                                const promises = selectedAssetIndicesForSequence.map(idxInSequence => processAndUpdate(idxInSequence));
+                                try { await Promise.all(promises); }
+                                catch (error) { console.error(`Error applying toggle to sequence: ${error.message || error}`); }
+                            } else {
+                                if (base64ToProcessForToggle && lottieData.assets[assetIdx]) {
+                                     try {
+                                        await processAndUpdate(assetIdx);
+                                     } catch (error) {
+                                        console.error(`Error applying toggle to asset ${assetIdx + 1}: ${error.message || error}`);
+                                     }
+                                }
                             }
+                            displayLottiePreview();
                         });
                         controlsButtonContainer.appendChild(aspectRatioButton);
 
@@ -720,48 +735,32 @@ padding-left: 0.6rem;
                         downloadAssetButton.className = 'icon-button';
                         downloadAssetButton.title = 'Download this asset';
                         downloadAssetButton.innerHTML = downloadAssetIconSVG;
-                        // Inside the listAssets function, when creating the downloadAssetButton
-                        // 'index' here refers to the originalAssetIndex of the asset card being created.
-                        const assetIndexOfClickedCard = index; // Store it for clarity if needed in single download
+                        const assetIndexOfClickedCard = index;
 
-                        downloadAssetButton.addEventListener('click', async () => { // Made async for await zip.generateAsync
+                        downloadAssetButton.addEventListener('click', async () => {
                             if (isSequenceModeActive && selectedAssetIndicesForSequence.length > 0) {
-                                // --- NEW: ZIP SELECTED ASSETS LOGIC ---
                                 const zip = new JSZip();
                                 const baseLottieName = lottieFileName.replace(/\.json$/i, '');
                                 const zipFileName = `${baseLottieName}_selected_assets.zip`;
-
-                                // 1. Get all filterable image assets from lottieData in their original order
-                                //    to determine correct global prefixes.
                                 const allImageAssetsInOrder = lottieData.assets
                                     .map((asset, originalIdx) => ({ asset, originalAssetIndex: originalIdx }))
                                     .filter(item => item.asset.p && typeof item.asset.p === 'string' && item.asset.p.startsWith('data:image/'));
 
-                                // 2. Iterate through the *selected* asset indices
                                 selectedAssetIndicesForSequence.forEach(selectedAssetOriginalIndex => {
-                                    // Find this selected asset in our ordered list of all image assets
-                                    // to determine its global sequence prefix.
                                     const globalAssetInfo = allImageAssetsInOrder.find(imgAsset => imgAsset.originalAssetIndex === selectedAssetOriginalIndex);
-
                                     if (globalAssetInfo) {
-                                        const asset = globalAssetInfo.asset;
-                                        // This is the 0-based index in the full list of actual image assets
+                                        const assetToZip = globalAssetInfo.asset;
                                         const globalOrderIndex = allImageAssetsInOrder.indexOf(globalAssetInfo);
-                                        const prefix = globalOrderIndex + 1; // 1-based prefix for filename
-
-                                        const base64Data = asset.p.substring(asset.p.indexOf(',') + 1);
-                                        const mimeType = getMimeTypeFromBase64(asset.p); //
+                                        const prefix = globalOrderIndex + 1;
+                                        const base64Data = assetToZip.p.substring(assetToZip.p.indexOf(',') + 1);
+                                        const mimeType = getMimeTypeFromBase64(assetToZip.p);
                                         let extension = mimeType.split('/')[1] || 'png';
                                         if (extension === 'svg+xml') extension = 'svg';
                                         if (extension === 'jpeg') extension = 'jpg';
-
-                                        // Use asset.id or asset.u if available, otherwise a generic name
-                                        let filenamePart = asset.id || asset.u || `asset_${selectedAssetOriginalIndex}`;
-                                        // Clean up filenamePart (remove paths, existing extensions)
+                                        let filenamePart = assetToZip.id || assetToZip.u || `asset_${selectedAssetOriginalIndex}`;
                                         if (filenamePart.includes('/')) filenamePart = filenamePart.substring(filenamePart.lastIndexOf('/') + 1);
                                         if (filenamePart.includes('\\')) filenamePart = filenamePart.substring(filenamePart.lastIndexOf('\\') + 1);
                                         filenamePart = filenamePart.replace(/\.[^/.]+$/, "");
-
                                         const prefixedFilename = `${prefix}-${filenamePart}.${extension}`;
                                         zip.file(prefixedFilename, base64Data, {base64: true});
                                     }
@@ -777,26 +776,15 @@ padding-left: 0.6rem;
                                         link.click();
                                         document.body.removeChild(link);
                                         URL.revokeObjectURL(link.href);
-                                    } catch (error) {
-                                        console.error("Error generating selected assets ZIP file:", error);
-                                    }
-                                } else {
-                                    // Optionally, provide feedback if no files were added (e.g., if selection was cleared unexpectedly)
-                                    console.warn("No selected assets were found to include in the ZIP.");
-                                }
-                                return; // Crucial: prevent falling through to single asset download
+                                    } catch (error) { console.error("Error generating selected assets ZIP file:", error); }
+                                } else { console.warn("No selected assets were found to include in the ZIP."); }
+                                return;
                             }
 
-                            // --- ORIGINAL SINGLE ASSET DOWNLOAD LOGIC ---
-                            // This code runs if not in sequence mode or if no assets are selected.
                             const processedBase64ToDownload = lottieData.assets[assetIndexOfClickedCard].p;
                             const idForName = lottieData.assets[assetIndexOfClickedCard].id || `asset_${assetIndexOfClickedCard}`;
-                            let typeForName = getImageTypeFromBase64(processedBase64ToDownload).toLowerCase() || 'png'; //
-
-                            if (typeForName === 'svg+xml') {
-                                typeForName = 'svg';
-                            }
-
+                            let typeForName = getImageTypeFromBase64(processedBase64ToDownload).toLowerCase() || 'png';
+                            if (typeForName === 'svg+xml') typeForName = 'svg';
                             if (processedBase64ToDownload) {
                                 const link = document.createElement('a');
                                 link.href = processedBase64ToDownload;
@@ -808,6 +796,18 @@ padding-left: 0.6rem;
                             }
                         });
                         controlsButtonContainer.appendChild(downloadAssetButton);
+
+                        const resetAssetButton = document.createElement('button');
+                        resetAssetButton.className = 'icon-button reset-asset-button';
+                        resetAssetButton.title = 'Reset this asset to original';
+                        resetAssetButton.innerHTML = resetAssetIconSVG;
+                        resetAssetButton.disabled = !(asset.hasChanged === true);
+                        if(asset.hasChanged) {
+                            resetAssetButton.classList.add('reset-asset-button-enabled');
+                        }
+                        resetAssetButton.addEventListener('click', () => handleResetAssetClick(index));
+                        controlsButtonContainer.appendChild(resetAssetButton);
+
                         assetDetailsContainer.appendChild(controlsButtonContainer);
                         assetContentWrapper.appendChild(assetDetailsContainer);
 
@@ -867,15 +867,12 @@ padding-left: 0.6rem;
             updateScrollIndicators();
         }
 
-        // --- Sequence Mode Logic ---
         function updateSelectionCounter() {
             selectionCounterPill.textContent = `${selectedAssetIndicesForSequence.length} Selected`;
         }
 
         function handleSequenceCheckboxChange(event) {
             const changedCheckbox = event.target;
-            // const assetItem = changedCheckbox.closest('.asset-item');
-
             const allCheckboxes = Array.from(assetList.querySelectorAll('.asset-sequence-checkbox'));
             let currentlyCheckedOriginalIndices = [];
             allCheckboxes.forEach(cb => { if (cb.checked) currentlyCheckedOriginalIndices.push(parseInt(cb.dataset.assetIndex)); });
@@ -1024,6 +1021,14 @@ padding-left: 0.6rem;
             }
         });
 
+        // Event listener for the "Select Again" button
+        selectAgainButton.addEventListener('click', () => {
+            sequenceErrorTooltip.classList.remove('visible');
+            multipleFilesInput.value = ''; // Clear previous selection from input
+            multipleFilesInput.click(); // Re-open file dialog
+        });
+
+
         async function handleAssetReplacement(assetIndex, newFile, assetImageElementInList, shouldStretch) {
             const reader = new FileReader();
             reader.onload = async (e) => {
@@ -1045,20 +1050,10 @@ padding-left: 0.6rem;
             reader.readAsDataURL(newFile);
         }
 
-        /**
-         * Processes an image (resize, crop, format conversion) and applies it to the Lottie data and UI.
-         * @param {number} assetIndex - The original index of the asset in lottieData.assets.
-         * @param {string} imageBase64ToProcess - The base64 string of the image to process.
-         * @param {HTMLImageElement} assetImageElementInList - The img element in the asset card (can be null if not updating UI directly).
-         * @param {boolean} shouldStretch - True to stretch, false to cover (if resizing).
-         * @param {string} originalUploadedMimeType - MIME type of the originally uploaded file (e.g., 'image/jpeg', 'image/svg+xml').
-         * @param {boolean} [isBulkUpdate=false] - If true, skips immediate Lottie preview refresh.
-         */
         function processAndApplyImage(assetIndex, imageBase64ToProcess, assetImageElementInList, shouldStretch, originalUploadedMimeType, isBulkUpdate = false) {
             return new Promise((resolve, reject) => {
                 const originalAsset = lottieData.assets[assetIndex];
                 if (!originalAsset) {
-                    console.error(`Asset ${assetIndex} not found in Lottie data.`);
                     reject(new Error(`Asset ${assetIndex} not found.`));
                     return;
                 }
@@ -1071,7 +1066,7 @@ padding-left: 0.6rem;
                     let finalBase64 = imageBase64ToProcess;
                     let finalLottieAssetW = img.width;
                     let finalLottieAssetH = img.height;
-                    const rawUploadedImgW = img.width; // Capture raw dimensions
+                    const rawUploadedImgW = img.width;
                     const rawUploadedImgH = img.height;
 
                     const isUploadedSVG = originalUploadedMimeType === 'image/svg+xml';
@@ -1081,46 +1076,38 @@ padding-left: 0.6rem;
                                                    rawUploadedImgH === originalLottieH;
 
                     if (isUploadedSVG) {
-                        console.log(`Asset ${assetIndex}: SVG detected. Embedding directly. Dimensions: ${rawUploadedImgW}x${rawUploadedImgH}`);
                         finalBase64 = imageBase64ToProcess;
                         finalLottieAssetW = rawUploadedImgW;
                         finalLottieAssetH = rawUploadedImgH;
                     } else if (isRasterExactMatchWithSlot) {
-                        console.log(`Asset ${assetIndex}: Raster exact match with Lottie slot (${originalLottieW}x${originalLottieH}). Bypassing resize/crop.`);
                         finalLottieAssetW = originalLottieW;
                         finalLottieAssetH = originalLottieH;
-
                         const tempCanvas = document.createElement('canvas');
                         tempCanvas.width = finalLottieAssetW;
                         tempCanvas.height = finalLottieAssetH;
                         const tempCtx = tempCanvas.getContext('2d');
                         tempCtx.drawImage(img, 0, 0);
-
                         if (originalUploadedMimeType === 'image/jpeg') {
                             try { finalBase64 = tempCanvas.toDataURL('image/jpeg', 0.92); }
-                            catch (e) { console.error("Error re-encoding exact match JPEG:", e); finalBase64 = imageBase64ToProcess; }
+                            catch (e) { finalBase64 = imageBase64ToProcess; }
                         } else if (!imageBase64ToProcess.startsWith('data:image/png')) {
                             try { finalBase64 = tempCanvas.toDataURL('image/png'); }
-                            catch (e) { console.error("Error converting exact match to PNG:", e); finalBase64 = imageBase64ToProcess; }
+                            catch (e) { finalBase64 = imageBase64ToProcess; }
                         } else {
                             finalBase64 = imageBase64ToProcess;
                         }
-                    } else if (originalLottieW && originalLottieH) { // Raster, but NOT exact match with slot, AND slot dimensions exist
-                        console.log(`Asset ${assetIndex}: Raster, processing required. Uploaded: ${rawUploadedImgW}x${rawUploadedImgH}, Target Slot: ${originalLottieW}x${originalLottieH}. Stretch: ${shouldStretch}`);
+                    } else if (originalLottieW && originalLottieH) {
                         finalLottieAssetW = originalLottieW;
                         finalLottieAssetH = originalLottieH;
-
                         const canvas = document.createElement('canvas');
                         canvas.width = originalLottieW;
                         canvas.height = originalLottieH;
                         const ctx = canvas.getContext('2d');
                         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
                         if (!shouldStretch) { // COVER
                             const targetAspectRatio = canvas.width / canvas.height;
                             const sourceAspectRatio = rawUploadedImgW / rawUploadedImgH;
                             let sx = 0, sy = 0, sWidth = rawUploadedImgW, sHeight = rawUploadedImgH;
-
                             if (sourceAspectRatio > targetAspectRatio) {
                                 sWidth = rawUploadedImgH * targetAspectRatio;
                                 sx = (rawUploadedImgW - sWidth) / 2;
@@ -1132,7 +1119,6 @@ padding-left: 0.6rem;
                         } else { // STRETCH
                             ctx.drawImage(img, 0, 0, originalLottieW, originalLottieH);
                         }
-
                         try {
                             let outputMimeType = 'image/png';
                             let quality;
@@ -1142,21 +1128,17 @@ padding-left: 0.6rem;
                             }
                             finalBase64 = quality !== undefined ? canvas.toDataURL(outputMimeType, quality) : canvas.toDataURL(outputMimeType);
                         } catch (cvError) {
-                            console.error("Canvas toDataURL error during resize/crop:", cvError);
                             try { finalBase64 = canvas.toDataURL('image/png'); }
                             catch (pngError) {
-                                console.error("PNG fallback error:", pngError);
                                 finalBase64 = imageBase64ToProcess;
-                                finalLottieAssetW = rawUploadedImgW; // Fallback to raw dimensions
+                                finalLottieAssetW = rawUploadedImgW;
                                 finalLottieAssetH = rawUploadedImgH;
                             }
                         }
-                    } else { // Raster, but NO originalLottieW/H defined in slot. Use image as-is.
-                        console.warn(`Asset ${assetIndex}: Raster, but no original Lottie slot w/h. Using uploaded image dimensions: ${rawUploadedImgW}x${rawUploadedImgH}.`);
+                    } else {
                         finalLottieAssetW = rawUploadedImgW;
                         finalLottieAssetH = rawUploadedImgH;
-
-                        const tempCanvas = document.createElement('canvas'); // Still ensure PNG/JPEG
+                        const tempCanvas = document.createElement('canvas');
                         tempCanvas.width = finalLottieAssetW;
                         tempCanvas.height = finalLottieAssetH;
                         const tempCtx = tempCanvas.getContext('2d');
@@ -1172,11 +1154,18 @@ padding-left: 0.6rem;
                         }
                     }
 
-                    lottieData.assets[assetIndex].p = finalBase64;
-                    lottieData.assets[assetIndex].w = Math.round(finalLottieAssetW);
-                    lottieData.assets[assetIndex].h = Math.round(finalLottieAssetH);
+                    originalAsset.p = finalBase64;
+                    originalAsset.w = Math.round(finalLottieAssetW);
+                    originalAsset.h = Math.round(finalLottieAssetH);
 
-                    // Pass rawUploadedImgW/H to updateAssetCardDisplay for its button logic
+                    if (originalAsset.originalAssetP && originalAsset.p !== originalAsset.originalAssetP) {
+                        originalAsset.hasChanged = true;
+                    } else if (!originalAsset.originalAssetP && imageBase64ToProcess) {
+                        originalAsset.hasChanged = true;
+                    } else if (originalAsset.originalAssetP && originalAsset.p === originalAsset.originalAssetP) {
+                         originalAsset.hasChanged = false;
+                    }
+
                     updateAssetCardDisplay(assetIndex, Math.round(finalLottieAssetW), Math.round(finalLottieAssetH), rawUploadedImgW, rawUploadedImgH);
 
                     if (!isBulkUpdate) {
@@ -1185,26 +1174,24 @@ padding-left: 0.6rem;
                     resolve();
                 };
                 img.onerror = () => {
-                     console.error(`Could not load image from base64 for processing (asset ${assetIndex}).`);
-                     lottieData.assets[assetIndex].p = imageBase64ToProcess;
+                     originalAsset.p = imageBase64ToProcess;
                      const tempImgErr = new Image();
                      tempImgErr.onload = () => {
                         const wError = originalLottieW || tempImgErr.width;
                         const hError = originalLottieH || tempImgErr.height;
-                        lottieData.assets[assetIndex].w = wError;
-                        lottieData.assets[assetIndex].h = hError;
-                        // When calling updateAssetCardDisplay on error, we pass the error image's dimensions as "raw"
+                        originalAsset.w = wError;
+                        originalAsset.h = hError;
+                        originalAsset.hasChanged = (originalAsset.originalAssetP && originalAsset.p !== originalAsset.originalAssetP);
                         updateAssetCardDisplay(assetIndex, wError, hError, tempImgErr.width, tempImgErr.height);
                         if (!isBulkUpdate) displayLottiePreview();
                         resolve();
                      }
                      tempImgErr.onerror = () => {
-                        console.error('Fallback image load also failed for asset ' + assetIndex);
                         const wCritical = originalLottieW || 0;
                         const hCritical = originalLottieH || 0;
-                        lottieData.assets[assetIndex].w = wCritical;
-                        lottieData.assets[assetIndex].h = hCritical;
-                        // Pass 0,0 or undefined for raw dimensions if truly unknown
+                        originalAsset.w = wCritical;
+                        originalAsset.h = hCritical;
+                        originalAsset.hasChanged = (originalAsset.originalAssetP && originalAsset.p !== originalAsset.originalAssetP);
                         updateAssetCardDisplay(assetIndex, wCritical, hCritical, undefined, undefined);
                         if (!isBulkUpdate) displayLottiePreview();
                         reject(new Error('Image load and fallback failed for asset ' + assetIndex));
@@ -1215,8 +1202,56 @@ padding-left: 0.6rem;
             });
         }
 
+        async function handleResetAssetClick(assetIndexOfClickedCard) {
+            const clickedAsset = lottieData.assets[assetIndexOfClickedCard];
 
-        // --- Download Logic ---
+            if (isSequenceModeActive && selectedAssetIndicesForSequence.length > 0 && selectedAssetIndicesForSequence.includes(assetIndexOfClickedCard)) {
+                const promises = selectedAssetIndicesForSequence.map(idxInSequence => {
+                    const assetToReset = lottieData.assets[idxInSequence];
+                    if (assetToReset && assetToReset.hasChanged) {
+                        return resetSingleAsset(idxInSequence);
+                    }
+                    return Promise.resolve();
+                });
+                try {
+                    await Promise.all(promises);
+                } catch (error) {
+                    console.error("Error resetting one or more selected assets:", error);
+                }
+            } else if (clickedAsset && clickedAsset.hasChanged) {
+                try {
+                    await resetSingleAsset(assetIndexOfClickedCard);
+                } catch (error) {
+                     console.error(`Error resetting asset ${assetIndexOfClickedCard + 1}:`, error);
+                }
+            }
+            displayLottiePreview();
+        }
+
+        async function resetSingleAsset(idx) {
+            const asset = lottieData.assets[idx];
+            const assetItem = document.querySelector(`.asset-item[data-asset-index='${idx}']`);
+
+            if (asset && asset.originalAssetP && assetItem) {
+                asset.p = asset.originalAssetP;
+                asset.w = asset.originalAssetW;
+                asset.h = asset.originalAssetH;
+                asset.hasChanged = false;
+
+                assetItem.dataset.lastUploadedRawBase64 = asset.originalAssetP;
+                assetItem.dataset.originalFileType = asset.originalAssetMimeType;
+
+                const assetImageElementInList = assetItem.querySelector('.preview-image-container img');
+                if (assetImageElementInList) {
+                    assetImageElementInList.src = asset.originalAssetP;
+                }
+                updateAssetCardDisplay(idx, asset.w, asset.h, asset.originalAssetW, asset.originalAssetH);
+
+                return Promise.resolve();
+            }
+            return Promise.reject(new Error(`Asset, original data, or item not found for index ${idx} during reset.`));
+        }
+
         downloadLottieButton.addEventListener('click', () => {
             if (!lottieData) { return; }
             try {
@@ -1228,6 +1263,11 @@ padding-left: 0.6rem;
                     dataToDownload.assets.forEach(asset => {
                         delete asset.originalLottieW;
                         delete asset.originalLottieH;
+                        delete asset.originalAssetP;
+                        delete asset.originalAssetW;
+                        delete asset.originalAssetH;
+                        delete asset.originalAssetMimeType;
+                        delete asset.hasChanged;
                     });
                 }
 
@@ -1243,52 +1283,38 @@ padding-left: 0.6rem;
         });
 
         downloadAllAssetsButton.addEventListener('click', async () => {
-                    if (!lottieData || !lottieData.assets || lottieData.assets.length === 0) {
-                        return;
-                    }
+            if (!lottieData || !lottieData.assets || lottieData.assets.length === 0) return;
+            const zip = new JSZip();
+            const imageAssets = lottieData.assets.filter(asset => asset.p && typeof asset.p === 'string' && asset.p.startsWith('data:image/'));
+            if (imageAssets.length === 0) return;
 
-                    const zip = new JSZip();
-                    const imageAssets = lottieData.assets.filter(asset => asset.p && typeof asset.p === 'string' && asset.p.startsWith('data:image/'));
+            imageAssets.forEach((asset, index) => {
+                const base64Data = asset.p.substring(asset.p.indexOf(',') + 1);
+                const mimeType = getMimeTypeFromBase64(asset.p);
+                let extension = mimeType.split('/')[1] || 'png';
+                if (extension === 'svg+xml') extension = 'svg';
+                if (extension === 'jpeg') extension = 'jpg';
+                let filenamePart = asset.id || asset.u || `asset_${lottieData.assets.indexOf(asset)}`;
+                if (filenamePart.includes('/')) filenamePart = filenamePart.substring(filenamePart.lastIndexOf('/') + 1);
+                if (filenamePart.includes('\\')) filenamePart = filenamePart.substring(filenamePart.lastIndexOf('\\') + 1);
+                filenamePart = filenamePart.replace(/\.[^/.]+$/, "");
+                const prefixedFilename = `${index + 1}-${filenamePart}.${extension}`;
+                zip.file(prefixedFilename, base64Data, {base64: true});
+            });
 
-                    if (imageAssets.length === 0) {
-                        return;
-                    }
+            try {
+                const zipBlob = await zip.generateAsync({type:"blob"});
+                const zipFileName = lottieFileName.replace(/\.json$/i, '_assets.zip') || 'lottie_assets.zip';
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(zipBlob);
+                link.download = zipFileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+            } catch (error) { console.error("Error generating ZIP file:", error); }
+        });
 
-                    imageAssets.forEach((asset, index) => { // 'index' here is 0-based for the imageAssets array
-                        const base64Data = asset.p.substring(asset.p.indexOf(',') + 1);
-                        const mimeType = getMimeTypeFromBase64(asset.p);
-                        let extension = mimeType.split('/')[1] || 'png';
-                        if (extension === 'svg+xml') extension = 'svg';
-                        if (extension === 'jpeg') extension = 'jpg';
-
-                        let filenamePart = asset.id || asset.u || `asset_${index}`; // Original filename part
-                        if (filenamePart.includes('/')) filenamePart = filenamePart.substring(filenamePart.lastIndexOf('/') + 1);
-                        if (filenamePart.includes('\\')) filenamePart = filenamePart.substring(filenamePart.lastIndexOf('\\') + 1);
-                        filenamePart = filenamePart.replace(/\.[^/.]+$/, "");
-
-                        // Add the prefix here. 'index + 1' makes it 1-based.
-                        const prefixedFilename = `${index + 1}-${filenamePart}.${extension}`; // MODIFIED LINE
-
-                        zip.file(prefixedFilename, base64Data, {base64: true}); // Use prefixedFilename
-                    });
-
-                    try {
-                        const zipBlob = await zip.generateAsync({type:"blob"});
-                        const zipFileName = lottieFileName.replace(/\.json$/i, '_assets.zip') || 'lottie_assets.zip';
-                        const link = document.createElement('a');
-                        link.href = URL.createObjectURL(zipBlob);
-                        link.download = zipFileName;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        URL.revokeObjectURL(link.href);
-                    } catch (error) {
-                        console.error("Error generating ZIP file:", error);
-                    }
-                });
-
-
-        // --- UI Helpers (Scroll Indicators) ---
         function updateScrollIndicators() {
             const el = assetListContainer;
             const scrollThreshold = 10;
@@ -1305,9 +1331,17 @@ padding-left: 0.6rem;
         window.addEventListener('resize', updateScrollIndicators);
         scrollUpIndicator.addEventListener('click', () => assetListContainer.scrollTo({ top: 0, behavior: 'smooth' }));
         scrollDownIndicator.addEventListener('click', () => assetListContainer.scrollTo({ top: assetListContainer.scrollHeight, behavior: 'smooth' }));
-	closeSequenceTooltipButton.addEventListener('click', () => {
-   cancelSequenceButton.click(); // This function already handles hiding the tooltip
-});
+
+        closeSequenceTooltipButton.addEventListener('click', () => {
+           cancelSequenceButton.click();
+        });
+
+        selectionCounterPill.addEventListener('click', () => {
+            if (!browseSequenceFilesButton.classList.contains('hidden') && !browseSequenceFilesButton.disabled) {
+                browseSequenceFilesButton.click();
+            }
+        });
+
         // Initial setup
         updateScrollIndicators();
         setSequenceMode(false);
