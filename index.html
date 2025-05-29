@@ -4719,7 +4719,7 @@ a.download = editedName; // Use the potentially modified edited name
 
                  // Calculate the time and corresponding frame number in the original Lottie timeline
                  const timeSec = (frameIndex / GIF_FPS) * currentSpeed; // Time adjusted for speed
-                 const lottieFrame = lottieData.ip + timeSec * originalFrameRate;
+                 const lottieFrame = timeSec * originalFrameRate;
 
                  // Go to the calculated frame on the *temporary* animation instance
                  tmpAnim.goToAndStop(lottieFrame, true); // true = isFrame
